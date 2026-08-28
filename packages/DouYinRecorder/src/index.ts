@@ -135,11 +135,38 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     isLiveRadio = liveInfo.isLiveRadio;
     this.emit("stateChange", { state: "idle" });
   } catch (error) {
-    this.emit("stateChange", {
-      state: "check-error",
-      msg: `检查失败，` + (error instanceof Error ? error.message : String(error)),
-    });
-    throw error;
+    if (this.auth) {
+      this.emit("stateChange", {
+        state: "cookie-expired",
+        msg: "抖音Cookie已过期，自动切换到无Cookie模式",
+      });
+      this.emit("DebugLog", {
+        type: "common",
+        text: `douyin ${this.channelId} cookie expired, fallback to guest mode. error: ${error instanceof Error ? error.message : String(error)}`,
+      });
+      this.auth = undefined;
+      try {
+        const liveInfo = await getInfo(this.channelId, {
+          api: this.api as APIType,
+          uid: this.uid,
+        });
+        this.liveInfo = liveInfo;
+        isLiveRadio = liveInfo.isLiveRadio;
+        this.emit("stateChange", { state: "idle" });
+      } catch (fallbackError) {
+        this.emit("stateChange", {
+          state: "check-error",
+          msg: `检查失败，` + (fallbackError instanceof Error ? fallbackError.message : String(fallbackError)),
+        });
+        throw fallbackError;
+      }
+    } else {
+      this.emit("stateChange", {
+        state: "check-error",
+        msg: `检查失败，` + (error instanceof Error ? error.message : String(error)),
+      });
+      throw error;
+    }
   }
 
   if (this.liveInfo.liveId && this.liveInfo.liveId === banLiveId) {

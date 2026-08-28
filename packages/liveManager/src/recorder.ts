@@ -122,14 +122,15 @@ export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreat
     // | "recordHandle"
   >;
 
-/** 录制状态，idle: 空闲中，recording: 录制中，stopping-record: 停止录制中，check-error: 检查错误，title-blocked: 标题黑名单，charge-skipped: 充电直播(DRM加密)已跳过 */
+/** 录制状态，idle: 空闲中，recording: 录制中，stopping-record: 停止录制中，check-error: 检查错误，title-blocked: 标题黑名单，charge-skipped: 充电直播(DRM加密)已跳过，cookie-expired: Cookie过期 */
 export type RecorderState =
   | "idle"
   | "recording"
   | "stopping-record"
   | "check-error"
   | "title-blocked"
-  | "charge-skipped";
+  | "charge-skipped"
+  | "cookie-expired";
 export type Progress = { time: string | null };
 
 export interface RecorderTimelineItem {

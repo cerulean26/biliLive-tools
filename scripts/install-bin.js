@@ -5,6 +5,14 @@ import download from "download";
 import { SingleBar } from "cli-progress";
 import JSZip from "jszip";
 
+// GitHub 加速代理，留空则不使用代理
+const GITHUB_PROXY = "https://v6.gh-proxy.org/";
+
+function proxyUrl(url) {
+  if (!GITHUB_PROXY) return url;
+  return GITHUB_PROXY + url;
+}
+
 async function unzip(zipFile, destination) {
   const zip = new JSZip();
   const data = await zip.loadAsync(fs.readFileSync(zipFile));
@@ -69,7 +77,7 @@ async function downloadMesio() {
   }
 
   const mesioUrl = `https://github.com/hua0512/rust-srec/releases/download/${version}/${assetName}`;
-  await downloadFile(mesioUrl, "packages/app/resources/bin", {
+  await downloadFile(proxyUrl(mesioUrl), "packages/app/resources/bin", {
     filename: process.platform === "win32" ? "mesio.exe" : "mesio",
   });
   // 添加执行权限
@@ -92,7 +100,7 @@ async function downloadBililiveRecorder() {
   const filename = `BililiveRecorder-CLI-${platform}-${arch}.zip`;
   let url = `https://github.com/renmu123/BililiveRecorder/releases/download/v3.4.0/${filename}`;
 
-  await downloadFile(url, ".");
+  await downloadFile(proxyUrl(url), ".");
   await unzip(filename, "packages/app/resources/bin");
 
   // 添加执行权限
@@ -124,7 +132,7 @@ async function downloadAudioWaveform() {
   if (platform === "win64") {
     const filename = `audiowaveform-${version}-${platform}.zip`;
     audioWaveformUrl = `${baseUrl}/${filename}`;
-    await downloadFile(audioWaveformUrl, ".");
+    await downloadFile(proxyUrl(audioWaveformUrl), ".");
     await unzip(filename, "packages/app/resources/bin");
   } else if (platform === "macos") {
     console.error("macOS 平台暂不支持 audiowaveform 下载，请手动安装");
@@ -133,7 +141,7 @@ async function downloadAudioWaveform() {
     console.warn("下载的是debian12版本");
     const filename = `audiowaveform_${version}-1-12_${arch}`;
     audioWaveformUrl = `${baseUrl}/${filename}.deb`;
-    await downloadFile(audioWaveformUrl, "packages/app/resources/bin", {
+    await downloadFile(proxyUrl(audioWaveformUrl), "packages/app/resources/bin", {
       filename: "audiowaveform.deb",
     });
     fs.chmodSync("packages/app/resources/bin/audiowaveform.deb", 0o755);
@@ -161,7 +169,7 @@ async function downloadDanmakuFactory() {
   const filename = `DanmakuFactory-${platform}-${arch}-CLI.zip`;
   let url = `https://github.com/renmu123/DanmakuFactory/releases/download/v2.1.2/${filename}`;
 
-  await downloadFile(url, ".");
+  await downloadFile(proxyUrl(url), ".");
   await unzip(filename, "packages/app/resources/bin");
 
   // 添加执行权限
@@ -178,7 +186,7 @@ async function downloadBaseBinary() {
   const downloadUrl = `https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/${filename}`;
   console.log(`下载 ${downloadUrl}`);
 
-  await downloadFile(downloadUrl, ".");
+  await downloadFile(proxyUrl(downloadUrl), ".");
   await unzip(filename, "packages/app/resources");
 }
 

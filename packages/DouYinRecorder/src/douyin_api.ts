@@ -514,14 +514,28 @@ export async function getRoomInfo(
       api = "web";
     }
   }
-  if (api === "webHTML") {
-    data = await getRoomInfoByHtml(webRoomId, opts);
-  } else if (api === "mobile") {
-    data = await getRoomInfoByMobile(opts.uid as string, opts);
-  } else if (api === "userHTML") {
-    data = await getRoomInfoByUserWeb(opts.uid as string, opts);
-  } else {
-    data = await getRoomInfoByWeb(webRoomId, opts);
+  const callAPI = async (useAuth: boolean) => {
+    const callOpts = { ...opts, auth: useAuth ? opts.auth : undefined };
+    if (api === "webHTML") {
+      return await getRoomInfoByHtml(webRoomId, callOpts);
+    } else if (api === "mobile") {
+      return await getRoomInfoByMobile(callOpts.uid as string, callOpts);
+    } else if (api === "userHTML") {
+      return await getRoomInfoByUserWeb(callOpts.uid as string, callOpts);
+    } else {
+      return await getRoomInfoByWeb(webRoomId, callOpts);
+    }
+  };
+
+  try {
+    data = await callAPI(true);
+  } catch (error) {
+    if (opts.auth) {
+      console.warn("抖音Cookie可能已过期，自动回退到无Cookie模式:", (error as Error).message);
+      data = await callAPI(false);
+    } else {
+      throw error;
+    }
   }
 
   const room = data.room;

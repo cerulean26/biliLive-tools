@@ -125,6 +125,7 @@ function getStateTimelineText(state: RecorderState, msg?: string) {
     "check-error": "检查失败",
     "title-blocked": "标题命中过滤规则",
     "charge-skipped": "特殊直播(付费/权限/加密)，无法录制，已跳过",
+    "cookie-expired": "Cookie已过期，已自动切换无Cookie模式",
   };
 
   return stateTextMap[state];

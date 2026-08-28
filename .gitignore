@@ -4,6 +4,7 @@ out
 *.log*
 bin
 cookies.json
+cookie.txt
 tsconfig.tsbuildinfo
 lib
 

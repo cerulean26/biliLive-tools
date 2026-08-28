@@ -524,6 +524,13 @@
               title="登录后退出即可获取cookie"
               >登录</n-button
             >
+            <span
+              v-if="douyinCookieDays !== null"
+              :style="douyinCookieDaysStyle"
+              style="margin-left: 10px; font-size: 13px; white-space: nowrap;"
+            >
+              {{ douyinCookieDaysText }}
+            </span>
           </n-form-item>
           <n-form-item>
             <template #label>
@@ -795,6 +802,49 @@ const labelWidth = computed(() => {
 
 const { userList } = storeToRefs(useUserInfoStore());
 const isWeb = computed(() => window.isWeb);
+
+function parseCookieExpiry(cookie: string): number | null {
+  if (!cookie) return null;
+  const match = cookie.match(/sid_guard=([^;]+)/);
+  if (!match) return null;
+  try {
+    const decoded = decodeURIComponent(match[1]);
+    const parts = decoded.split("|");
+    if (parts.length >= 4) {
+      const issueTime = parseInt(parts[1], 10);
+      const maxAge = parseInt(parts[2], 10);
+      if (!isNaN(issueTime) && !isNaN(maxAge)) {
+        return issueTime + maxAge;
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+const douyinCookieDays = computed(() => {
+  const cookie = config.value?.recorder?.douyin?.cookie;
+  if (!cookie) return null;
+  const expiryTimestamp = parseCookieExpiry(cookie);
+  if (!expiryTimestamp) return null;
+  const now = Math.floor(Date.now() / 1000);
+  return Math.ceil((expiryTimestamp - now) / 86400);
+});
+
+const douyinCookieDaysText = computed(() => {
+  if (douyinCookieDays.value === null) return "";
+  if (douyinCookieDays.value <= 0) return "Cookie 可能已过期";
+  if (douyinCookieDays.value <= 7) return `预计剩余 ${douyinCookieDays.value} 天，建议重新登录`;
+  return `预计剩余 ${douyinCookieDays.value} 天`;
+});
+
+const douyinCookieDaysStyle = computed(() => {
+  if (douyinCookieDays.value === null) return {};
+  if (douyinCookieDays.value <= 0) return { color: "#d03050" };
+  if (douyinCookieDays.value <= 7) return { color: "#f0a020" };
+  return { color: "#18a058" };
+});
 
 const selectFolder = async () => {
   let file: string | undefined = await showDirectoryDialog({
