@@ -6,6 +6,7 @@ import type { PartTitleFormatOptions } from "@biliLive-tools/types";
  * 支持{{title}},{{user}},{{now}}等占位符，会覆盖预设中的标题，如【{{user}}】{{title}}-{{now}}<br/>
  * 直播标题：{{title}}<br/>
  * 主播名：{{user}}<br/>
+ * 备注名：{{remark}}<br/>
  * 房间号：{{roomId}}<br/>
  * 当前时间（快速）：{{now}}，示例：2024.01.24<br/>
  * 年：{{yyyy}}<br/>
@@ -19,6 +20,7 @@ import type { PartTitleFormatOptions } from "@biliLive-tools/types";
  * @param {object} options 格式化参数
  * @param {string} options.title 直播标题
  * @param {string} options.username 主播名
+ * @param {string} options.remark 备注名，为空时回退到主播名
  * @param {string} options.time 直播时间
  * @param {number} options.roomId 房间号
  * @param {string} options.filename 文件名
@@ -31,15 +33,18 @@ export function formatTitle(
     time: string;
     roomId: string | number;
     filename: string;
+    remark?: string;
   },
   template: string,
 ) {
   const { year, month, day, hours, minutes, seconds, now } = formatTime(options.time);
+  const remark = options.remark?.trim() || options.username;
   let renderText = template;
   try {
     const renderOptions = {
       title: options.title,
       user: options.username,
+      remark: remark,
       time: new Date(options.time),
       roomId: options.roomId,
       filename: options.filename,
@@ -52,6 +57,7 @@ export function formatTitle(
   const title = renderText
     .replaceAll("{{title}}", options.title)
     .replaceAll("{{user}}", options.username)
+    .replaceAll("{{remark}}", remark)
     .replaceAll("{{roomId}}", String(options.roomId))
     .replaceAll("{{now}}", now)
     .replaceAll("{{yyyy}}", year)
@@ -71,6 +77,7 @@ export function formatTitle(
  * 简介格式化，支持{{title}},{{user}},{{now}}等占位符
  * 直播标题：{{title}}<br/>
  * 主播名：{{user}}<br/>
+ * 备注名：{{remark}}<br/>
  * 房间号：{{roomId}}<br/>
  * 当前时间（快速）：{{now}}，示例：2024.01.24<br/>
  * 年：{{yyyy}}<br/>
@@ -84,6 +91,7 @@ export function formatTitle(
  * @param {object} options 格式化参数
  * @param {string} options.title 直播标题
  * @param {string} options.username 主播名
+ * @param {string} options.remark 备注名，为空时回退到主播名
  * @param {string} options.time 直播时间
  * @param {number} options.roomId 房间号
  * @param {string} options.filename 文件名
@@ -96,15 +104,18 @@ export function formatDesc(
     time: string;
     roomId: string | number;
     filename: string;
+    remark?: string;
   },
   template: string,
 ) {
   const { year, month, day, hours, minutes, seconds, now } = formatTime(options.time);
+  const remark = options.remark?.trim() || options.username;
   let renderText = template;
   try {
     const renderOptions = {
       title: options.title,
       user: options.username,
+      remark: remark,
       time: new Date(options.time),
       roomId: options.roomId,
       filename: options.filename,
@@ -117,6 +128,7 @@ export function formatDesc(
   const desc = renderText
     .replaceAll("{{title}}", options.title)
     .replaceAll("{{user}}", options.username)
+    .replaceAll("{{remark}}", remark)
     .replaceAll("{{roomId}}", String(options.roomId))
     .replaceAll("{{now}}", now)
     .replaceAll("{{yyyy}}", year)
@@ -136,6 +148,7 @@ export function formatDesc(
  * 分P标题格式化
  * 直播标题：{{title}}<br/>
  * 主播名：{{user}}<br/>
+ * 备注名：{{remark}}<br/>
  * 房间号：{{roomId}}<br/>
  * 当前时间（快速）：{{now}}，示例：2024.01.24<br/>
  * 年：{{yyyy}}<br/>
@@ -149,6 +162,7 @@ export function formatDesc(
  * @param {object} options 格式化参数
  * @param {string} options.title 直播标题
  * @param {string} options.username 主播名
+ * @param {string} options.remark 备注名，为空时回退到主播名
  * @param {string} options.time 直播时间
  * @param {number} options.roomId 房间号
  * @param {string} options.filename 文件名
@@ -156,6 +170,7 @@ export function formatDesc(
  */
 export function formatPartTitle(options: PartTitleFormatOptions, template: string) {
   const { year, month, day, hours, minutes, seconds } = formatTime(options.time);
+  const remark = options.remark?.trim() || options.username;
   let renderText = template;
   const isDanmaFile = options.filename.includes("-弹幕版");
   const hasDanmaStr = isDanmaFile ? "弹幕版" : "纯享版";
@@ -163,6 +178,7 @@ export function formatPartTitle(options: PartTitleFormatOptions, template: strin
     const renderOptions = {
       title: options.title,
       user: options.username,
+      remark: remark,
       time: new Date(options.time),
       roomId: options.roomId,
       filename: options.filename,
@@ -178,6 +194,7 @@ export function formatPartTitle(options: PartTitleFormatOptions, template: strin
   const title = renderText
     .replaceAll("{{title}}", options.title)
     .replaceAll("{{user}}", options.username)
+    .replaceAll("{{remark}}", remark)
     .replaceAll("{{roomId}}", String(options.roomId))
     .replaceAll("{{yyyy}}", year)
     .replaceAll("{{MM}}", month)
