@@ -50,6 +50,7 @@ type UploadFileItem = {
     roomId: string | null;
     title: string | null;
     username: string | null;
+    remark?: string;
     platform?: string | null;
   };
   type: "raw" | "handled";
@@ -662,6 +663,9 @@ export class WebhookHandler {
         recordStatus: "recording",
         title: options.title,
       });
+      if (options.remark) {
+        currentLive.remark = options.remark;
+      }
     } else {
       // 新建Live数据
       const live = new Live({
@@ -671,6 +675,7 @@ export class WebhookHandler {
         startTime: timestamp,
         title: options.title,
         username: options.username,
+        remark: options.remark,
       });
       live.addPart({
         startTime: timestamp,
@@ -716,6 +721,10 @@ export class WebhookHandler {
       // 更新文件路径
       currentLive.updatePartValue(currentPart.partId, "filePath", file);
       currentLive.updatePartValue(currentPart.partId, "rawFilePath", file);
+      // 同步备注名
+      if (options.remark) {
+        currentLive.remark = options.remark;
+      }
       // const partIndex = currentLive.parts.findIndex((part) => part.partId === currentPart.partId);
       // for (let i = 0; i < partIndex; i++) {
       //   const part = currentLive.parts[i];
@@ -734,6 +743,7 @@ export class WebhookHandler {
         roomId: options.roomId,
         title: options.title,
         username: options.username,
+        remark: options.remark,
         startTime: timestamp,
       });
       const part = live.addPart({
@@ -963,6 +973,7 @@ export class WebhookHandler {
       index,
       title: part.title,
       username: live.username,
+      remark: live.remark,
       roomId: live.roomId,
       startTimestamp: part.startTime ? Math.floor(part.startTime / 1000) : null,
       platform: live.platform,
@@ -1368,6 +1379,7 @@ export class WebhookHandler {
       const placeholders = [
         "{{title}}",
         "{{user}}",
+        "{{remark}}",
         "{{roomId}}",
         "{{now}}",
         "{{yyyy}}",
@@ -1388,6 +1400,7 @@ export class WebhookHandler {
       {
         title: live.title,
         username: live.username,
+        remark: live.remark,
         roomId: live.roomId,
         time: part?.startTime ? new Date(part.startTime).toISOString() : new Date().toISOString(),
         filename,

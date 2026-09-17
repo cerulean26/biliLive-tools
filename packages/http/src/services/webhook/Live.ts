@@ -184,6 +184,8 @@ export class Live {
   title: string;
   // 主播名
   username: string;
+  // 备注名
+  remark?: string;
   aid?: number;
   // 非弹幕版aid
   rawAid?: number;
@@ -196,6 +198,7 @@ export class Live {
     roomId: string;
     title: string;
     username: string;
+    remark?: string;
     startTime: number;
     aid?: number;
     rawAid?: number;
@@ -207,6 +210,7 @@ export class Live {
     this.startTime = options.startTime;
     this.title = options.title;
     this.username = options.username;
+    this.remark = options.remark;
     this.aid = options.aid;
     this.rawAid = options.rawAid;
     this.parts = [];

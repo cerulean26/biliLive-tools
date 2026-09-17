@@ -29,6 +29,7 @@ export interface Options {
   roomId: string;
   time: string;
   username: string;
+  remark?: string;
   title: string;
   coverPath?: string;
   danmuPath?: string;
@@ -49,6 +50,8 @@ export interface CustomEvent {
   title: string;
   /** 主播名称，用于格式化视频标题 */
   username: string;
+  /** 主播备注名，用于格式化视频标题 */
+  remark?: string;
   /** 封面路径 */
   coverPath?: string;
   /** 弹幕路径 */
