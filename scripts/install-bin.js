@@ -5,6 +5,14 @@ import download from "download";
 import { SingleBar } from "cli-progress";
 import JSZip from "jszip";
 
+// GitHub 加速代理，留空则不使用代理
+const GITHUB_PROXY = "https://v6.gh-proxy.org/";
+
+function proxyUrl(url) {
+  if (!GITHUB_PROXY) return url;
+  return GITHUB_PROXY + url;
+}
+
 async function unzip(zipFile, destination) {
   const zip = new JSZip();
   const data = await zip.loadAsync(fs.readFileSync(zipFile));
@@ -68,7 +76,7 @@ async function downloadMesio() {
     throw new Error(`mesio ${version} 暂不支持平台: ${target}`);
   }
 
-  const mesioUrl = `https://github.com/hua0512/rust-srec/releases/download/${version}/${assetName}`;
+  const mesioUrl = proxyUrl(`https://github.com/hua0512/rust-srec/releases/download/${version}/${assetName}`);
   await downloadFile(mesioUrl, "packages/app/resources/bin", {
     filename: process.platform === "win32" ? "mesio.exe" : "mesio",
   });
@@ -90,7 +98,7 @@ async function downloadBililiveRecorder() {
   const platform = platforms[process.platform] ?? process.platform;
   const arch = process.arch;
   const filename = `BililiveRecorder-CLI-${platform}-${arch}.zip`;
-  let url = `https://github.com/renmu123/BililiveRecorder/releases/download/v3.4.0/${filename}`;
+  let url = proxyUrl(`https://github.com/renmu123/BililiveRecorder/releases/download/v3.4.0/${filename}`);
 
   await downloadFile(url, ".");
   await unzip(filename, "packages/app/resources/bin");
@@ -123,7 +131,7 @@ async function downloadAudioWaveform() {
 
   if (platform === "win64") {
     const filename = `audiowaveform-${version}-${platform}.zip`;
-    audioWaveformUrl = `${baseUrl}/${filename}`;
+    audioWaveformUrl = proxyUrl(`${baseUrl}/${filename}`);
     await downloadFile(audioWaveformUrl, ".");
     await unzip(filename, "packages/app/resources/bin");
   } else if (platform === "macos") {
@@ -132,7 +140,7 @@ async function downloadAudioWaveform() {
   } else if (platform === "linux") {
     console.warn("下载的是debian12版本");
     const filename = `audiowaveform_${version}-1-12_${arch}`;
-    audioWaveformUrl = `${baseUrl}/${filename}.deb`;
+    audioWaveformUrl = proxyUrl(`${baseUrl}/${filename}.deb`);
     await downloadFile(audioWaveformUrl, "packages/app/resources/bin", {
       filename: "audiowaveform.deb",
     });
@@ -159,7 +167,7 @@ async function downloadDanmakuFactory() {
   };
   const platform = platforms[process.platform] ?? process.platform;
   const filename = `DanmakuFactory-${platform}-${arch}-CLI.zip`;
-  let url = `https://github.com/renmu123/DanmakuFactory/releases/download/v2.1.2/${filename}`;
+  let url = proxyUrl(`https://github.com/renmu123/DanmakuFactory/releases/download/v2.1.2/${filename}`);
 
   await downloadFile(url, ".");
   await unzip(filename, "packages/app/resources/bin");
@@ -175,7 +183,7 @@ async function downloadDanmakuFactory() {
  */
 async function downloadBaseBinary() {
   const filename = `${process.platform}-${process.arch}-2.5.0.zip`;
-  const downloadUrl = `https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/${filename}`;
+  const downloadUrl = proxyUrl(`https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/${filename}`);
   console.log(`下载 ${downloadUrl}`);
 
   await downloadFile(downloadUrl, ".");
