@@ -81,7 +81,7 @@ async function sendStartLiveNotification(
   recorder: Recorder,
   config: RecorderConfigType,
 ) {
-  const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remarks;
+  const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remark;
   const title = `${name}(${config.channelId}) 正在直播`;
 
   const globalConfig = appConfig.getAll();
@@ -121,7 +121,7 @@ async function sendChargeLiveNotification(
   recorder: Recorder,
   config: RecorderConfigType,
 ) {
-  const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remarks;
+  const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remark;
   // 通知会触发于付费/大航海权限/密码房等所有不可录类型，用 liveInfo 的类型提示精确措辞，
   // 取不到时回退为通用「特殊直播」，不写死「付费直播(DRM)」以免对 guard/密码房误导。
   const typeDesc = recorder?.liveInfo?.liveTypeDesc ?? "特殊直播";
@@ -159,12 +159,12 @@ async function sendEndLiveNotification(
   // 如果距离上次通知不到10分钟，跳过
   if (lastNotificationTime && now - lastNotificationTime < 10 * 60 * 1000) {
     logger.info(
-      `跳过直播结束通知，距离上次通知不到10分钟：${config.remarks} (${config.channelId})`,
+      `跳过直播结束通知，距离上次通知不到10分钟：${config.remark} (${config.channelId})`,
     );
     return;
   }
 
-  const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remarks;
+  const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remark;
   const title = `${name}(${config.channelId}) 录制已停止`;
 
   const globalConfig = appConfig.getAll();
@@ -441,7 +441,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     if (!config) return;
     const enabled = config?.chargeLiveNotification !== false && !config?.disableAutoCheck;
     logger.info(
-      `RecoderChargeLive: ${config.remarks}(${config.channelId}) notify=${enabled} chargeLiveNotification=${config.chargeLiveNotification}`,
+      `RecoderChargeLive: ${config.remark}(${config.channelId}) notify=${enabled} chargeLiveNotification=${config.chargeLiveNotification}`,
     );
     if (enabled) {
       sendChargeLiveNotification(appConfig, recorder, config);
@@ -471,7 +471,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
           time: videoStartTime.toISOString(),
           title: recorder.liveInfo.title,
           username: recorder.liveInfo.owner,
-          remark: data?.remarks,
+          remark: data?.remark,
           platform: recorder.providerId.toLowerCase(),
           software: "biliLive-tools",
         },
@@ -595,7 +595,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
           time: endTime.toISOString(),
           title: title,
           username: username,
-          remark: data?.remarks,
+          remark: data?.remark,
           platform: recorder.providerId.toLowerCase(),
           software: "biliLive-tools",
         };

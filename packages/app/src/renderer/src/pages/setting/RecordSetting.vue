@@ -823,8 +823,8 @@ const titleList = ref([
     label: "房间号",
   },
   {
-    value: "{remarks}",
-    label: "备注",
+    value: "{remark}",
+    label: "备注名",
   },
   {
     value: "{owner}",

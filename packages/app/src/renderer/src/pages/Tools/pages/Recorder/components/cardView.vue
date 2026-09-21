@@ -43,7 +43,7 @@
         <img class="avatar" :src="item.avatar" referrerpolicy="no-referrer" />
         <div style="display: flex; flex-direction: column; justify-content: space-between">
           <div style="display: flex; gap: 5px; align-items: center">
-            <div class="owner" :title="item.remarks">{{ item.owner || item.remarks }}</div>
+            <div class="owner" :title="item.remark">{{ item.owner || item.remark }}</div>
             <n-icon v-if="item.living" size="20" title="直播中" class="icon-live">
               <Live24Regular />
             </n-icon>

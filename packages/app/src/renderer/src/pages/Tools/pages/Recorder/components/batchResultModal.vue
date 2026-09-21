@@ -71,7 +71,7 @@
             <n-thing>
               <template #header>
                 <n-text v-if="result.success" type="success">
-                  {{ result.data?.remarks }} - {{ result.data?.providerId }}
+                  {{ result.data?.remark }} - {{ result.data?.providerId }}
                 </n-text>
               </template>
               <template #description>
@@ -154,7 +154,7 @@ const addRecorders = async () => {
         await recoderApi.add(result.data);
         successAddCount++;
       } catch (error: any) {
-        errorResults.push(`添加失败: ${result.data.remarks}，${error.message || error}`);
+        errorResults.push(`添加失败: ${result.data.remark}，${error.message || error}`);
         failedAddCount++;
       }
     }

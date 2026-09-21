@@ -103,7 +103,7 @@
             <div
               v-if="item.living"
               class="section"
-              @click="open(item.id, item.owner || item.remarks)"
+              @click="open(item.id, item.owner || item.remark)"
             >
               观看直播
             </div>
@@ -198,7 +198,7 @@ const LIVE_INFO_CACHE_STORAGE_KEY = "recorder-live-info-cache";
 const columnConfig = [
   { value: "channelId", label: "房间号" },
   { value: "owner", label: "主播名" },
-  { value: "remark", label: "备注" },
+  { value: "remark", label: "备注名" },
   { value: "roomTitle", label: "标题" },
   { value: "living", label: "直播状态" },
   { value: "state", label: "录制状态" },

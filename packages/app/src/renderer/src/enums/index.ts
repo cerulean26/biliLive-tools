@@ -9,7 +9,7 @@ export const uploadTitleTemplate = [
   },
   {
     value: "{{remark}}",
-    label: "主播备注名",
+    label: "备注名",
   },
   {
     value: "{{roomId}}",

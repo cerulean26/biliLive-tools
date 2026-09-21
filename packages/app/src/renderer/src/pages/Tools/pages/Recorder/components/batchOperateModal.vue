@@ -73,7 +73,7 @@
             <div style="flex: 1; min-width: 0">
               <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px">
                 <n-text strong>{{
-                  recorder.remarks || recorder.liveInfo?.owner || "未命名"
+                  recorder.remark || recorder.liveInfo?.owner || "未命名"
                 }}</n-text>
                 <n-tag size="small" type="info">
                   {{ getPlatformName(recorder.providerId) }}
@@ -200,7 +200,7 @@ const filteredRecorders = computed(() => {
     const keyword = filterKeyword.value.toLowerCase();
     list = list.filter(
       (r) =>
-        r.remarks?.toLowerCase().includes(keyword) ||
+        r.remark?.toLowerCase().includes(keyword) ||
         r.channelId.toLowerCase().includes(keyword) ||
         r.liveInfo?.owner?.toLowerCase().includes(keyword),
     );
