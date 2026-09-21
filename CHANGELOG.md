@@ -1,8 +1,17 @@
-# Next
+# 3.22.1(2026.09.21)
+
+## 优化
+
+2026.9.21 日起，斗鱼web接口已经无法获取最高画质，以及录制流过期时间为五分钟，你需要添加cookie来避免问题
+
+- 斗鱼支持cookie参数（仅在获取流接口时启用） [#562](https://github.com/renmu123/biliLive-tools/pull/562)
+
+# 3.22.0(2026.09.21)
 
 ## 功能
 
 - B站上传：添加联合投稿功能 [#557](https://github.com/renmu123/biliLive-tools/pull/557)
+- 录制：某些场景下优化抖音流连续失效时切换流格式来支持录制 [#559](https://github.com/renmu123/biliLive-tools/pull/559)
 
 ## 优化
 
@@ -15,6 +24,8 @@
 ## Bug修复
 
 - 录制：修复xhs内部的解析错误 [#556](https://github.com/renmu123/biliLive-tools/pull/556)
+- 切片：修复修改字幕颜色后渲染失败的bug
+- 切片：修复字幕配置加载时使用初始化值的bug
 
 # 其他
 
