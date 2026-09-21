@@ -41,6 +41,8 @@ linux:
 appImage:
   artifactName: ${name}-${version}-no-ffmpeg.${ext}
 npmRebuild: false
+electronDownload:
+  mirror: https://npmmirror.com/mirrors/electron/
 publish:
   provider: generic
   url: https://example.com/auto-updates

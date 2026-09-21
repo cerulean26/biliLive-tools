@@ -4,7 +4,7 @@
       <tr>
         <th v-if="isColumnVisible('channelId')">房间号</th>
         <th v-if="isColumnVisible('owner')">主播名</th>
-        <th v-if="isColumnVisible('remark')">备注</th>
+        <th v-if="isColumnVisible('remark')">备注名</th>
         <th v-if="isColumnVisible('roomTitle')">标题</th>
         <th v-if="isColumnVisible('living')" @click="handleSort('living')" class="sortable-header">
           直播状态
@@ -59,8 +59,8 @@
         <td v-if="isColumnVisible('channelId')">
           <a class="link" target="_blank" :href="item.channelURL">{{ item.channelId }}</a>
         </td>
-        <td v-if="isColumnVisible('owner')">{{ item.owner || item.remarks }}</td>
-        <td v-if="isColumnVisible('remark')">{{ item.remarks }}</td>
+        <td v-if="isColumnVisible('owner')">{{ item.owner || item.remark }}</td>
+        <td v-if="isColumnVisible('remark')">{{ item.remark }}</td>
         <td v-if="isColumnVisible('roomTitle')">{{ item.roomTitle }}</td>
         <td
           v-if="isColumnVisible('living')"

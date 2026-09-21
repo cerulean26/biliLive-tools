@@ -97,7 +97,7 @@ biliLive-tools 提供三种录制器引擎：
 
 - `{platform}` - 平台名称
 - `{channelId}` - 房间号
-- `{remarks}` - 备注
+- `{remark}` - 备注
 - `{owner}` - 主播名称
 - `{title}` - 直播标题
 - `{year}` - 年份

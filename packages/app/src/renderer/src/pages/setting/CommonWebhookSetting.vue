@@ -700,6 +700,10 @@ const partTitleList = ref([
     label: "主播名",
   },
   {
+    value: "{{remark}}",
+    label: "备注名",
+  },
+  {
     value: "{{roomId}}",
     label: "房间号",
   },

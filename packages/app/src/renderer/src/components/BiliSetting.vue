@@ -1,4 +1,4 @@
-﻿<!-- bili设置 -->
+﻿﻿﻿<!-- bili设置 -->
 <template>
   <div>
     <n-form ref="formRef" :label-width="labelWidth" label-placement="left" label-align="right">
@@ -1101,6 +1101,10 @@ const partTitleList = ref([
   {
     value: "{{user}}",
     label: "主播名",
+  },
+  {
+    value: "{{remark}}",
+    label: "备注名",
   },
   {
     value: "{{roomId}}",

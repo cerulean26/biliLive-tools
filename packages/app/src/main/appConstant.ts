@@ -6,7 +6,9 @@ import fs from "fs-extra";
 export const __dirname2 = dirname(fileURLToPath(import.meta.url));
 
 export const getConfigPath = async () => {
-  const binPath = join(process.resourcesPath || "", "app.asar.unpacked", "resources", "bin");
+  const binPath = app.isPackaged
+    ? join(process.resourcesPath || "", "app.asar.unpacked", "resources", "bin")  // 生产模式
+    : join(__dirname2, "..", "..", "resources", "bin"); // 开发模式
 
   let userDataPath = app.getPath("userData");
   let APP_CONFIG_PATH = join(userDataPath, "appConfig.json");

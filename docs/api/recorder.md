@@ -34,7 +34,7 @@
       "id": "fd5f94e4-4f78-4623-b705-5a7095676f96", // 内部录制id，用于开始录制、删除等操作
       "providerId": "DouYu", // 平台
       "channelId": "2140934", // 直播间号
-      "remarks": "老皮12.27历险记", // 备注
+      "remark": "老皮12.27历险记", // 备注
       "disableAutoCheck": true, // 是否禁用自动录制
       "channelURL": "https://www.douyu.com/2140934", // 原站链接
       // 仅当录制中状态存在
@@ -93,7 +93,7 @@
 | ----------------------------------- | ------- | ---- | ------------------------------------------------------------------------------------------------------------------ |
 | providerId                          | string  | 是   | 平台ID                                                                                                             |
 | channelId                           | string  | 是   | 直播间ID                                                                                                           |
-| remarks                             | string  | 否   | 备注                                                                                                               |
+| remark                              | string  | 否   | 备注                                                                                                               |
 | disableAutoCheck                    | boolean | 否   | 禁用自动监控                                                                                                       |
 | quality                             | string  | 否   | 画质                                                                                                               |
 | extra                               | object  | 否   | 额外配置                                                                                                           |

@@ -65,7 +65,7 @@ export type GetRecordersResp = {
     ClientRecorder,
     | "id"
     | "channelId"
-    | "remarks"
+    | "remark"
     | "disableAutoCheck"
     | "providerId"
     | "channelURL"
@@ -95,7 +95,7 @@ export type AddRecorderResp = ClientRecorder;
 export type UpdateRecorderArgs = Pick<
   RecoderConfig,
   | "id"
-  | "remarks"
+  | "remark"
   | "disableAutoCheck"
   | "quality"
   | "streamPriorities"

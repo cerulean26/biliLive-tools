@@ -39,7 +39,7 @@ export const recorderNoGlobalFollowFields: Array<
     | "providerId"
     | "id"
     | "channelId"
-    | "remarks"
+    | "remark"
     | "extra"
     | "disableAutoCheck"
     | "sendToWebhook"
@@ -89,6 +89,7 @@ export type CommonPreset<T> = {
 export interface PartTitleFormatOptions {
   title: string;
   username: string;
+  remark?: string;
   time: string;
   roomId: string | number;
   filename: string;
@@ -510,7 +511,7 @@ export interface Recorder {
   providerId: "DouYu" | "HuYa" | "Bilibili" | "DouYin" | "XHS" | "TikTok";
   id: string;
   channelId: string;
-  remarks?: string;
+  remark?: string;
   streamPriorities: any[];
   sourcePriorities: any[];
   extra: {

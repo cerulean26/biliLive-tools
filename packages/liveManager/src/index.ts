@@ -37,7 +37,7 @@ export function defaultToJSON<E extends AnyObject>(
     ...pick(recorder, [
       "id",
       "channelId",
-      "remarks",
+      "remark",
       "disableAutoCheck",
       "quality",
       "streamPriorities",

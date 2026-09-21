@@ -60,7 +60,7 @@
             <template #label>
               <span class="inline-flex"> 备注 </span>
             </template>
-            <n-input v-model:value="config.remarks" placeholder="请输入备注（可选）"> </n-input>
+            <n-input v-model:value="config.remark" placeholder="请输入备注（可选）"> </n-input>
           </n-form-item>
           <n-form-item>
             <template #label>
@@ -968,7 +968,7 @@ const onChannelIdInputEnd = async () => {
     initGlobalFields();
     // 直接使用后端返回的完整配置
     config.value = res;
-    owner.value = res.remarks || "";
+    owner.value = res.remark || "";
   } finally {
     channelIdResolving.value = false;
   }

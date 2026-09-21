@@ -253,7 +253,7 @@ router.post("/add", async (ctx) => {
     (ctx.request.body ?? {}) as RecorderAPI["addRecorder"]["Args"],
     "providerId",
     "channelId",
-    "remarks",
+    "remark",
     "disableAutoCheck",
     "quality",
     "streamPriorities",
@@ -326,7 +326,7 @@ router.put("/:id", (ctx) => {
   const { id } = ctx.params;
   const patch = pick(
     ctx.request.body as Omit<RecorderAPI["updateRecorder"]["Args"], "id">,
-    "remarks",
+    "remark",
     "disableAutoCheck",
     "quality",
     "streamPriorities",

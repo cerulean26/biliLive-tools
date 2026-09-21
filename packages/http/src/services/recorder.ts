@@ -27,7 +27,7 @@ async function getRecorders(
   if (params.name) {
     list = list.filter(
       (item) =>
-        item.remarks?.includes(params.name as string) ||
+        item.remark?.includes(params.name as string) ||
         item.channelId.includes(params.name as string),
     );
   }
@@ -86,7 +86,7 @@ async function getRecorders(
         "id",
         "providerId",
         "channelId",
-        "remarks",
+        "remark",
         "disableAutoCheck",
         "channelURL",
         "recordHandle",
@@ -346,7 +346,7 @@ export async function resolve(url: string) {
   const config = cloneDeep(defaultRecordConfig);
   config.channelId = channelInfo.channelId;
   config.providerId = channelInfo.providerId as any;
-  config.remarks = channelInfo.owner;
+  config.remark = channelInfo.owner;
   config.extra = {
     createTimestamp: Date.now(),
     avatar: channelInfo.avatar,

@@ -16,7 +16,7 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   // 预期上它应该是一个系统内的唯一 id，用于操作时的目标指定
   id?: string;
   // 备注，可填入频道名、主播名等
-  remarks?: string;
+  remark?: string;
   // 权重，值越大，UI显示越靠前
   weight?: number;
   // 为 true 时 manager 将跳过自动检查
@@ -106,7 +106,7 @@ export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreat
     Recorder<E>,
     | "id"
     | "channelId"
-    | "remarks"
+    | "remark"
     | "disableAutoCheck"
     | "quality"
     | "streamPriorities"

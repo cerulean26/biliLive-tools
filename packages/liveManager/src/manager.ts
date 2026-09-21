@@ -696,7 +696,7 @@ export function genSavePathFromRule<
   const now = extData?.startTime ? new Date(extData.startTime) : new Date();
   const owner = removeSystemReservedChars((extData?.owner ?? "").replaceAll("%", "_"));
   const title = removeSystemReservedChars((extData?.title ?? "").replaceAll("%", "_"));
-  const remarks = removeSystemReservedChars((recorder.remarks ?? "").replaceAll("%", "_"));
+  const remark = removeSystemReservedChars((recorder.remark ?? "").replaceAll("%", "_"));
   const channelId = removeSystemReservedChars(String(recorder.channelId));
   const params = {
     platform: provider?.name ?? "unknown",
@@ -711,7 +711,7 @@ export function genSavePathFromRule<
     startTime: now,
     owner: owner,
     title: title,
-    remarks: remarks,
+    remark: remark,
     channelId,
     replaceFourByteUnicode,
   };
