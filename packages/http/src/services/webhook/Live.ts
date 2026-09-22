@@ -397,6 +397,7 @@ export class Live {
     roomId: string;
     title: string;
     username: string;
+    remark?: string;
     aid?: number;
     rawAid?: number;
     parts: PartInterface[];
@@ -409,6 +410,7 @@ export class Live {
       roomId: this.roomId,
       title: this.title,
       username: this.username,
+      remark: this.remark,
       aid: this.aid,
       rawAid: this.rawAid,
       parts: this.parts.map((part) => part.toJSON()),
