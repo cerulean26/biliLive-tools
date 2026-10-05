@@ -32,6 +32,15 @@ interface User {
   nickName: string;
   AvatarThumb: AvatarThumb;
   BadgeImageList: BadgeImage[];
+  Level?: string;
+  PayGrade?: {
+    level?: string;
+  };
+  FansClub?: {
+    data?: {
+      level?: string;
+    };
+  };
 }
 
 interface AnchorDisplayText {

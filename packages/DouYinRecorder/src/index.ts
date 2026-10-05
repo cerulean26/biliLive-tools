@@ -317,10 +317,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       sender: {
         uid: msg.user.id,
         name: msg.user.nickName,
-        // avatar: msg.user.AvatarThumb.urlListList[0],
-        // extra: {
-        //   level: msg.level,
-        // },
+        extra: {
+          level: msg.user.PayGrade?.level ?? "0",
+          clubLevel: msg.user.FansClub?.data?.level ?? "0",
+        },
       },
     };
     this.emit("Message", comment);
@@ -338,6 +338,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       sender: {
         uid: msg.user.id,
         name: msg.user.nickName,
+        extra: {
+          level: msg.user.PayGrade?.level ?? "0",
+          clubLevel: msg.user.FansClub?.data?.level ?? "0",
+        },
       },
     };
     this.emit("Message", comment);
@@ -354,6 +358,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       sender: {
         uid: msg.user.id,
         name: msg.user.nickName,
+        extra: {
+          level: msg.user.PayGrade?.level ?? "0",
+          clubLevel: msg.user.FansClub?.data?.level ?? "0",
+        },
       },
     };
     this.emit("Message", comment);
@@ -379,10 +387,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       sender: {
         uid: msg.user.id,
         name: msg?.user?.nickName || "unknown",
-        // avatar: msg.ic,
-        // extra: {
-        //   level: msg.level,
-        // },
+        extra: {
+          level: msg.user.PayGrade?.level ?? "0",
+          clubLevel: msg.user.FansClub?.data?.level ?? "0",
+        },
       },
     };
 

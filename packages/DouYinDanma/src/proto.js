@@ -1,5 +1,5 @@
 /*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
-import * as $protobuf from "protobufjs/minimal.js";
+import * as $protobuf from "protobufjs/minimal";
 
 // Common aliases
 const $Reader = $protobuf.Reader,
@@ -16887,6 +16887,7 @@ export const douyin = ($root.douyin = (() => {
      * @property {number|null} [IncomeSharePercent] User IncomeSharePercent
      * @property {Array.<douyin.IImage>|null} [BadgeImageList] User BadgeImageList
      * @property {douyin.IFollowInfo|null} [FollowInfo] User FollowInfo
+     * @property {douyin.IPayGrade|null} [PayGrade] User PayGrade
      * @property {douyin.IFansClub|null} [FansClub] User FansClub
      * @property {string|null} [SpecialId] User SpecialId
      * @property {douyin.IImage|null} [AvatarBorder] User AvatarBorder
@@ -17087,6 +17088,14 @@ export const douyin = ($root.douyin = (() => {
     User.prototype.FollowInfo = null;
 
     /**
+     * User PayGrade.
+     * @member {douyin.IPayGrade|null|undefined} PayGrade
+     * @memberof douyin.User
+     * @instance
+     */
+    User.prototype.PayGrade = null;
+
+    /**
      * User FansClub.
      * @member {douyin.IFansClub|null|undefined} FansClub
      * @memberof douyin.User
@@ -17211,6 +17220,11 @@ export const douyin = ($root.douyin = (() => {
         $root.douyin.FollowInfo.encode(
           message.FollowInfo,
           writer.uint32(/* id 22, wireType 2 =*/ 178).fork(),
+        ).ldelim();
+      if (message.PayGrade != null && Object.hasOwnProperty.call(message, "PayGrade"))
+        $root.douyin.PayGrade.encode(
+          message.PayGrade,
+          writer.uint32(/* id 23, wireType 2 =*/ 186).fork(),
         ).ldelim();
       if (message.FansClub != null && Object.hasOwnProperty.call(message, "FansClub"))
         $root.douyin.FansClub.encode(
@@ -17357,6 +17371,10 @@ export const douyin = ($root.douyin = (() => {
           }
           case 22: {
             message.FollowInfo = $root.douyin.FollowInfo.decode(reader, reader.uint32());
+            break;
+          }
+          case 23: {
+            message.PayGrade = $root.douyin.PayGrade.decode(reader, reader.uint32());
             break;
           }
           case 24: {
@@ -17508,6 +17526,10 @@ export const douyin = ($root.douyin = (() => {
         let error = $root.douyin.FollowInfo.verify(message.FollowInfo);
         if (error) return "FollowInfo." + error;
       }
+      if (message.PayGrade != null && message.hasOwnProperty("PayGrade")) {
+        let error = $root.douyin.PayGrade.verify(message.PayGrade);
+        if (error) return "PayGrade." + error;
+      }
       if (message.FansClub != null && message.hasOwnProperty("FansClub")) {
         let error = $root.douyin.FansClub.verify(message.FansClub);
         if (error) return "FansClub." + error;
@@ -17633,6 +17655,11 @@ export const douyin = ($root.douyin = (() => {
           throw TypeError(".douyin.User.FollowInfo: object expected");
         message.FollowInfo = $root.douyin.FollowInfo.fromObject(object.FollowInfo);
       }
+      if (object.PayGrade != null) {
+        if (typeof object.PayGrade !== "object")
+          throw TypeError(".douyin.User.PayGrade: object expected");
+        message.PayGrade = $root.douyin.PayGrade.fromObject(object.PayGrade);
+      }
       if (object.FansClub != null) {
         if (typeof object.FansClub !== "object")
           throw TypeError(".douyin.User.FansClub: object expected");
@@ -17740,6 +17767,7 @@ export const douyin = ($root.douyin = (() => {
         object.ShareQrcodeUri = "";
         object.IncomeSharePercent = 0;
         object.FollowInfo = null;
+        object.PayGrade = null;
         object.FansClub = null;
         object.SpecialId = "";
         object.AvatarBorder = null;
@@ -17847,6 +17875,8 @@ export const douyin = ($root.douyin = (() => {
       }
       if (message.FollowInfo != null && message.hasOwnProperty("FollowInfo"))
         object.FollowInfo = $root.douyin.FollowInfo.toObject(message.FollowInfo, options);
+      if (message.PayGrade != null && message.hasOwnProperty("PayGrade"))
+        object.PayGrade = $root.douyin.PayGrade.toObject(message.PayGrade, options);
       if (message.FansClub != null && message.hasOwnProperty("FansClub"))
         object.FansClub = $root.douyin.FansClub.toObject(message.FansClub, options);
       if (message.SpecialId != null && message.hasOwnProperty("SpecialId"))
@@ -18403,6 +18433,234 @@ export const douyin = ($root.douyin = (() => {
     };
 
     return FollowInfo;
+  })();
+
+  douyin.PayGrade = (function () {
+    /**
+     * Properties of a PayGrade.
+     * @memberof douyin
+     * @interface IPayGrade
+     * @property {number|Long|null} [level] PayGrade level
+     */
+
+    /**
+     * Constructs a new PayGrade.
+     * @memberof douyin
+     * @classdesc Represents a PayGrade.
+     * @implements IPayGrade
+     * @constructor
+     * @param {douyin.IPayGrade=} [properties] Properties to set
+     */
+    function PayGrade(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * PayGrade level.
+     * @member {number|Long} level
+     * @memberof douyin.PayGrade
+     * @instance
+     */
+    PayGrade.prototype.level = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+    /**
+     * Creates a new PayGrade instance using the specified properties.
+     * @function create
+     * @memberof douyin.PayGrade
+     * @static
+     * @param {douyin.IPayGrade=} [properties] Properties to set
+     * @returns {douyin.PayGrade} PayGrade instance
+     */
+    PayGrade.create = function create(properties) {
+      return new PayGrade(properties);
+    };
+
+    /**
+     * Encodes the specified PayGrade message. Does not implicitly {@link douyin.PayGrade.verify|verify} messages.
+     * @function encode
+     * @memberof douyin.PayGrade
+     * @static
+     * @param {douyin.IPayGrade} message PayGrade message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    PayGrade.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.level != null && Object.hasOwnProperty.call(message, "level"))
+        writer.uint32(/* id 6, wireType 0 =*/ 48).uint64(message.level);
+      return writer;
+    };
+
+    /**
+     * Encodes the specified PayGrade message, length delimited. Does not implicitly {@link douyin.PayGrade.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof douyin.PayGrade
+     * @static
+     * @param {douyin.IPayGrade} message PayGrade message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    PayGrade.encodeDelimited = function encodeDelimited(message, writer) {
+      return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a PayGrade message from the specified reader or buffer.
+     * @function decode
+     * @memberof douyin.PayGrade
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {douyin.PayGrade} PayGrade
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    PayGrade.decode = function decode(reader, length) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.douyin.PayGrade();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 6: {
+            message.level = reader.uint64();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Decodes a PayGrade message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof douyin.PayGrade
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {douyin.PayGrade} PayGrade
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    PayGrade.decodeDelimited = function decodeDelimited(reader) {
+      if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+      return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a PayGrade message.
+     * @function verify
+     * @memberof douyin.PayGrade
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    PayGrade.verify = function verify(message) {
+      if (typeof message !== "object" || message === null) return "object expected";
+      if (message.level != null && message.hasOwnProperty("level"))
+        if (
+          !$util.isInteger(message.level) &&
+          !(
+            message.level &&
+            $util.isInteger(message.level.low) &&
+            $util.isInteger(message.level.high)
+          )
+        )
+          return "level: integer|Long expected";
+      return null;
+    };
+
+    /**
+     * Creates a PayGrade message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof douyin.PayGrade
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {douyin.PayGrade} PayGrade
+     */
+    PayGrade.fromObject = function fromObject(object) {
+      if (object instanceof $root.douyin.PayGrade) return object;
+      let message = new $root.douyin.PayGrade();
+      if (object.level != null)
+        if ($util.Long) (message.level = $util.Long.fromValue(object.level)).unsigned = true;
+        else if (typeof object.level === "string") message.level = parseInt(object.level, 10);
+        else if (typeof object.level === "number") message.level = object.level;
+        else if (typeof object.level === "object")
+          message.level = new $util.LongBits(
+            object.level.low >>> 0,
+            object.level.high >>> 0,
+          ).toNumber(true);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a PayGrade message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof douyin.PayGrade
+     * @static
+     * @param {douyin.PayGrade} message PayGrade
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    PayGrade.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults)
+        if ($util.Long) {
+          let long = new $util.Long(0, 0, true);
+          object.level =
+            options.longs === String
+              ? long.toString()
+              : options.longs === Number
+                ? long.toNumber()
+                : long;
+        } else object.level = options.longs === String ? "0" : 0;
+      if (message.level != null && message.hasOwnProperty("level"))
+        if (typeof message.level === "number")
+          object.level = options.longs === String ? String(message.level) : message.level;
+        else
+          object.level =
+            options.longs === String
+              ? $util.Long.prototype.toString.call(message.level)
+              : options.longs === Number
+                ? new $util.LongBits(message.level.low >>> 0, message.level.high >>> 0).toNumber(
+                    true,
+                  )
+                : message.level;
+      return object;
+    };
+
+    /**
+     * Converts this PayGrade to JSON.
+     * @function toJSON
+     * @memberof douyin.PayGrade
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    PayGrade.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for PayGrade
+     * @function getTypeUrl
+     * @memberof douyin.PayGrade
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    PayGrade.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/douyin.PayGrade";
+    };
+
+    return PayGrade;
   })();
 
   douyin.FansClub = (function () {

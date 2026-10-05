@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package douyin;
 
-
+// WebSocket 响应包装
 message Response {
   repeated Message messagesList = 1;
   string cursor = 2;
@@ -17,7 +17,7 @@ message Response {
   string liveCursor = 11;
   bool historyNoMore = 12;
 }
-
+// 单条消息的通用包装
 message Message{
     string method = 1;
     bytes payload = 2;
@@ -440,7 +440,7 @@ message Against {
   uint64 leftGoalInt = 20;
   uint64 rightGoalInt = 21;
 }
-
+// 消息通用结构
 message Common {
   string method = 1;
   uint64 msgId = 2;
@@ -467,13 +467,14 @@ message Common {
   uint64 anchorFoldDuration = 23;
   uint64 appId = 24;
 }
-
+// 用户信息
 message User {
   uint64 id = 1;
   uint64 shortId = 2;
   string nickName = 3;
   uint32 gender = 4;
   string Signature = 5;
+  // ⚠️ 该字段不是用户等级（实测值域仅 0/1，与页面显示不符）；用户等级见 PayGrade.level。
   uint32 Level = 6;
   uint64 Birthday = 7;
   string Telephone = 8;
@@ -491,7 +492,7 @@ message User {
   uint32 IncomeSharePercent = 20;
   repeated Image BadgeImageList = 21;
   FollowInfo FollowInfo = 22;
-  // PayGrade PayGrade = 23;
+  PayGrade PayGrade = 23;
   FansClub FansClub = 24;
 //  Border Border = 25;
   string SpecialId = 26;
@@ -511,45 +512,51 @@ message FollowInfo {
   bool invalid_follow_status = 8;
 }
 
-// message PayGrade {
-//   uint64 total_diamond_count = 1;
-//   Image diamond_icon = 2;
-//   string name = 3;
-//   Image icon = 4;
-//   string next_name = 5;
-//   uint64 level = 6;
-//   Image next_icon = 7;
-//   uint64 next_diamond = 8;
-//   uint64 now_diamond = 9;
-//   uint64 this_grade_min_diamond = 10;
-//   uint64 this_grade_max_diamond = 11;
-//   uint64 pay_diamond_bak = 12;
-//   string grade_describe = 13;
-//   repeated GradeIcon grade_icon_list = 14;
-//   uint64 screen_chat_type = 15;
-//   Image im_icon = 16;
-//   Image im_icon_with_level = 17;
-//   Image live_icon = 18;
-//   Image new_im_icon_with_level = 19;
-//   Image new_live_icon = 20;
-//   uint64 upgrade_need_consume = 21;
-//   string next_privileges = 22;
-//   Image background = 23;
-//   Image background_back = 24;
-//   uint64 score = 25;
-//   GradeBuffInfo buff_info = 26;
-//   bool grade_describe_shining = 27;
-//   string grade_banner = 1001;
-//   Image profile_dialog_bg = 1002;
-//   Image profile_dialog_bg_back = 1003;
+// 用户等级（荣誉等级）。弹幕/礼物/上船 XML 里的 @level 取自本消息的 `level`(6)；
+// 原实现读 `User.Level`(6) 会拿到错误值（实测值域仅 0/1），故改用这里。
+//
+// ⚠️ 只声明确有消费方的字段：唯一消费点是 DouYinRecorder 的 4 处 `msg.user.PayGrade?.level`，
+// 其余字段一律注释（未声明的字段解码时会自动跳过，不影响 level 的解析）。
+// 取消注释前**必须先取真实样本核对字段号与 wiretype** —— 猜错 wiretype 会让解码抛 RangeError。
+message PayGrade {
+  // uint64 total_diamond_count = 1;
+  // Image diamond_icon = 2;
+  // string name = 3;
+  // Image icon = 4;
+  // string next_name = 5;
+  uint64 level = 6;
+  // Image next_icon = 7;
+  // uint64 next_diamond = 8;
+  // uint64 now_diamond = 9;
+  // uint64 this_grade_min_diamond = 10;
+  // uint64 this_grade_max_diamond = 11;
+  // uint64 pay_diamond_bak = 12;
+  // string grade_describe = 13;
+  // repeated GradeIcon grade_icon_list = 14;
+  // uint64 screen_chat_type = 15;
+  // Image im_icon = 16;
+  // Image im_icon_with_level = 17;
+  // Image live_icon = 18;
+  // Image new_im_icon_with_level = 19;
+  // Image new_live_icon = 20;
+  // uint64 upgrade_need_consume = 21;
+  // string next_privileges = 22;
+  // Image background = 23;
+  // Image background_back = 24;
+  // uint64 score = 25;
+  // GradeBuffInfo buff_info = 26;
+  // bool grade_describe_shining = 27;
+  // string grade_banner = 1001;
+  // Image profile_dialog_bg = 1002;
+  // Image profile_dialog_bg_back = 1003;
 
-//   message GradeIcon {
-//     Image icon = 1;
-//     uint64 icon_diamond = 2;
-//     uint64 level = 3;
-//     string level_str = 4;
-//   }
-// }
+  // message GradeIcon {
+  //   Image icon = 1;
+  //   uint64 icon_diamond = 2;
+  //   uint64 level = 3;
+  //   string level_str = 4;
+  // }
+}
 
 message FansClub {
   FansClubData data = 1;
