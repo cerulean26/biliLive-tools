@@ -18,7 +18,7 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "gen:proto": "pbjs -t static-module -w es6 -o src/proto.js src/dy.proto"
+    "gen:proto": "pbjs -t static-module -w es6 -o src/proto.js src/dy.proto && prettier --write src/proto.js"
   },
   "files": [
     "lib",
@@ -41,6 +41,7 @@
   "author": "renmu123",
   "license": "GPLV3",
   "dependencies": {
+    "long": "^5.2.3",
     "protobufjs": "^7.4.0",
     "tiny-typed-emitter": "^2.1.0",
     "ws": "^8.18.0"

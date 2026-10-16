@@ -11,6 +11,9 @@ import type {
   Message,
   PrivilegeScreenChatMessage,
   ScreenChatMessage,
+  LinkMicBattleMessage,
+  LinkMicBattleFinishMessage,
+  LinkMicMethodMessage,
 } from "../types/types.js";
 import WebSocket from "ws";
 
@@ -31,6 +34,9 @@ interface Events {
   message: (message: Message) => void;
   privilegeScreenChat: (message: PrivilegeScreenChatMessage) => void;
   screenChat: (message: ScreenChatMessage) => void;
+  linkMic: (message: LinkMicMethodMessage) => void;
+  linkMicBattle: (message: LinkMicBattleMessage) => void;
+  linkMicBattleFinish: (message: LinkMicBattleFinishMessage) => void;
 }
 declare class DouYinDanmaClient extends TypedEmitter<Events> {
   private ws: WebSocket;

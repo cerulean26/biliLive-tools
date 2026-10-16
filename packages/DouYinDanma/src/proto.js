@@ -24497,6 +24497,2192 @@ export const douyin = ($root.douyin = (() => {
     return FansclubMessage;
   })();
 
+  douyin.LinkMicMethod = (function () {
+    /**
+     * Properties of a LinkMicMethod.
+     * @memberof douyin
+     * @interface ILinkMicMethod
+     * @property {douyin.ICommon|null} [common] LinkMicMethod common
+     * @property {Array.<douyin.LinkMicMethod.IUserScores>|null} [userScores] LinkMicMethod userScores
+     * @property {number|Long|null} [battleId] LinkMicMethod battleId
+     */
+
+    /**
+     * Constructs a new LinkMicMethod.
+     * @memberof douyin
+     * @classdesc Represents a LinkMicMethod.
+     * @implements ILinkMicMethod
+     * @constructor
+     * @param {douyin.ILinkMicMethod=} [properties] Properties to set
+     */
+    function LinkMicMethod(properties) {
+      this.userScores = [];
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * LinkMicMethod common.
+     * @member {douyin.ICommon|null|undefined} common
+     * @memberof douyin.LinkMicMethod
+     * @instance
+     */
+    LinkMicMethod.prototype.common = null;
+
+    /**
+     * LinkMicMethod userScores.
+     * @member {Array.<douyin.LinkMicMethod.IUserScores>} userScores
+     * @memberof douyin.LinkMicMethod
+     * @instance
+     */
+    LinkMicMethod.prototype.userScores = $util.emptyArray;
+
+    /**
+     * LinkMicMethod battleId.
+     * @member {number|Long} battleId
+     * @memberof douyin.LinkMicMethod
+     * @instance
+     */
+    LinkMicMethod.prototype.battleId = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+    /**
+     * Creates a new LinkMicMethod instance using the specified properties.
+     * @function create
+     * @memberof douyin.LinkMicMethod
+     * @static
+     * @param {douyin.ILinkMicMethod=} [properties] Properties to set
+     * @returns {douyin.LinkMicMethod} LinkMicMethod instance
+     */
+    LinkMicMethod.create = function create(properties) {
+      return new LinkMicMethod(properties);
+    };
+
+    /**
+     * Encodes the specified LinkMicMethod message. Does not implicitly {@link douyin.LinkMicMethod.verify|verify} messages.
+     * @function encode
+     * @memberof douyin.LinkMicMethod
+     * @static
+     * @param {douyin.ILinkMicMethod} message LinkMicMethod message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    LinkMicMethod.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.common != null && Object.hasOwnProperty.call(message, "common"))
+        $root.douyin.Common.encode(
+          message.common,
+          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+        ).ldelim();
+      if (message.userScores != null && message.userScores.length)
+        for (let i = 0; i < message.userScores.length; ++i)
+          $root.douyin.LinkMicMethod.UserScores.encode(
+            message.userScores[i],
+            writer.uint32(/* id 17, wireType 2 =*/ 138).fork(),
+          ).ldelim();
+      if (message.battleId != null && Object.hasOwnProperty.call(message, "battleId"))
+        writer.uint32(/* id 104, wireType 0 =*/ 832).uint64(message.battleId);
+      return writer;
+    };
+
+    /**
+     * Encodes the specified LinkMicMethod message, length delimited. Does not implicitly {@link douyin.LinkMicMethod.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof douyin.LinkMicMethod
+     * @static
+     * @param {douyin.ILinkMicMethod} message LinkMicMethod message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    LinkMicMethod.encodeDelimited = function encodeDelimited(message, writer) {
+      return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a LinkMicMethod message from the specified reader or buffer.
+     * @function decode
+     * @memberof douyin.LinkMicMethod
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {douyin.LinkMicMethod} LinkMicMethod
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    LinkMicMethod.decode = function decode(reader, length) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.douyin.LinkMicMethod();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            message.common = $root.douyin.Common.decode(reader, reader.uint32());
+            break;
+          }
+          case 17: {
+            if (!(message.userScores && message.userScores.length)) message.userScores = [];
+            message.userScores.push(
+              $root.douyin.LinkMicMethod.UserScores.decode(reader, reader.uint32()),
+            );
+            break;
+          }
+          case 104: {
+            message.battleId = reader.uint64();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Decodes a LinkMicMethod message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof douyin.LinkMicMethod
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {douyin.LinkMicMethod} LinkMicMethod
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    LinkMicMethod.decodeDelimited = function decodeDelimited(reader) {
+      if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+      return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a LinkMicMethod message.
+     * @function verify
+     * @memberof douyin.LinkMicMethod
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    LinkMicMethod.verify = function verify(message) {
+      if (typeof message !== "object" || message === null) return "object expected";
+      if (message.common != null && message.hasOwnProperty("common")) {
+        let error = $root.douyin.Common.verify(message.common);
+        if (error) return "common." + error;
+      }
+      if (message.userScores != null && message.hasOwnProperty("userScores")) {
+        if (!Array.isArray(message.userScores)) return "userScores: array expected";
+        for (let i = 0; i < message.userScores.length; ++i) {
+          let error = $root.douyin.LinkMicMethod.UserScores.verify(message.userScores[i]);
+          if (error) return "userScores." + error;
+        }
+      }
+      if (message.battleId != null && message.hasOwnProperty("battleId"))
+        if (
+          !$util.isInteger(message.battleId) &&
+          !(
+            message.battleId &&
+            $util.isInteger(message.battleId.low) &&
+            $util.isInteger(message.battleId.high)
+          )
+        )
+          return "battleId: integer|Long expected";
+      return null;
+    };
+
+    /**
+     * Creates a LinkMicMethod message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof douyin.LinkMicMethod
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {douyin.LinkMicMethod} LinkMicMethod
+     */
+    LinkMicMethod.fromObject = function fromObject(object) {
+      if (object instanceof $root.douyin.LinkMicMethod) return object;
+      let message = new $root.douyin.LinkMicMethod();
+      if (object.common != null) {
+        if (typeof object.common !== "object")
+          throw TypeError(".douyin.LinkMicMethod.common: object expected");
+        message.common = $root.douyin.Common.fromObject(object.common);
+      }
+      if (object.userScores) {
+        if (!Array.isArray(object.userScores))
+          throw TypeError(".douyin.LinkMicMethod.userScores: array expected");
+        message.userScores = [];
+        for (let i = 0; i < object.userScores.length; ++i) {
+          if (typeof object.userScores[i] !== "object")
+            throw TypeError(".douyin.LinkMicMethod.userScores: object expected");
+          message.userScores[i] = $root.douyin.LinkMicMethod.UserScores.fromObject(
+            object.userScores[i],
+          );
+        }
+      }
+      if (object.battleId != null)
+        if ($util.Long) (message.battleId = $util.Long.fromValue(object.battleId)).unsigned = true;
+        else if (typeof object.battleId === "string")
+          message.battleId = parseInt(object.battleId, 10);
+        else if (typeof object.battleId === "number") message.battleId = object.battleId;
+        else if (typeof object.battleId === "object")
+          message.battleId = new $util.LongBits(
+            object.battleId.low >>> 0,
+            object.battleId.high >>> 0,
+          ).toNumber(true);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a LinkMicMethod message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof douyin.LinkMicMethod
+     * @static
+     * @param {douyin.LinkMicMethod} message LinkMicMethod
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    LinkMicMethod.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.arrays || options.defaults) object.userScores = [];
+      if (options.defaults) {
+        object.common = null;
+        if ($util.Long) {
+          let long = new $util.Long(0, 0, true);
+          object.battleId =
+            options.longs === String
+              ? long.toString()
+              : options.longs === Number
+                ? long.toNumber()
+                : long;
+        } else object.battleId = options.longs === String ? "0" : 0;
+      }
+      if (message.common != null && message.hasOwnProperty("common"))
+        object.common = $root.douyin.Common.toObject(message.common, options);
+      if (message.userScores && message.userScores.length) {
+        object.userScores = [];
+        for (let j = 0; j < message.userScores.length; ++j)
+          object.userScores[j] = $root.douyin.LinkMicMethod.UserScores.toObject(
+            message.userScores[j],
+            options,
+          );
+      }
+      if (message.battleId != null && message.hasOwnProperty("battleId"))
+        if (typeof message.battleId === "number")
+          object.battleId = options.longs === String ? String(message.battleId) : message.battleId;
+        else
+          object.battleId =
+            options.longs === String
+              ? $util.Long.prototype.toString.call(message.battleId)
+              : options.longs === Number
+                ? new $util.LongBits(
+                    message.battleId.low >>> 0,
+                    message.battleId.high >>> 0,
+                  ).toNumber(true)
+                : message.battleId;
+      return object;
+    };
+
+    /**
+     * Converts this LinkMicMethod to JSON.
+     * @function toJSON
+     * @memberof douyin.LinkMicMethod
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    LinkMicMethod.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for LinkMicMethod
+     * @function getTypeUrl
+     * @memberof douyin.LinkMicMethod
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    LinkMicMethod.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/douyin.LinkMicMethod";
+    };
+
+    LinkMicMethod.UserScores = (function () {
+      /**
+       * Properties of a UserScores.
+       * @memberof douyin.LinkMicMethod
+       * @interface IUserScores
+       * @property {number|Long|null} [score] UserScores score
+       * @property {number|Long|null} [userId] UserScores userId
+       * @property {number|Long|null} [battleRank] UserScores battleRank
+       * @property {number|Long|null} [multiPkTeamScore] UserScores multiPkTeamScore
+       * @property {number|Long|null} [multiPkTeamRank] UserScores multiPkTeamRank
+       */
+
+      /**
+       * Constructs a new UserScores.
+       * @memberof douyin.LinkMicMethod
+       * @classdesc Represents a UserScores.
+       * @implements IUserScores
+       * @constructor
+       * @param {douyin.LinkMicMethod.IUserScores=} [properties] Properties to set
+       */
+      function UserScores(properties) {
+        if (properties)
+          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * UserScores score.
+       * @member {number|Long} score
+       * @memberof douyin.LinkMicMethod.UserScores
+       * @instance
+       */
+      UserScores.prototype.score = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+      /**
+       * UserScores userId.
+       * @member {number|Long} userId
+       * @memberof douyin.LinkMicMethod.UserScores
+       * @instance
+       */
+      UserScores.prototype.userId = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+      /**
+       * UserScores battleRank.
+       * @member {number|Long} battleRank
+       * @memberof douyin.LinkMicMethod.UserScores
+       * @instance
+       */
+      UserScores.prototype.battleRank = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+      /**
+       * UserScores multiPkTeamScore.
+       * @member {number|Long} multiPkTeamScore
+       * @memberof douyin.LinkMicMethod.UserScores
+       * @instance
+       */
+      UserScores.prototype.multiPkTeamScore = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+      /**
+       * UserScores multiPkTeamRank.
+       * @member {number|Long} multiPkTeamRank
+       * @memberof douyin.LinkMicMethod.UserScores
+       * @instance
+       */
+      UserScores.prototype.multiPkTeamRank = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+      /**
+       * Creates a new UserScores instance using the specified properties.
+       * @function create
+       * @memberof douyin.LinkMicMethod.UserScores
+       * @static
+       * @param {douyin.LinkMicMethod.IUserScores=} [properties] Properties to set
+       * @returns {douyin.LinkMicMethod.UserScores} UserScores instance
+       */
+      UserScores.create = function create(properties) {
+        return new UserScores(properties);
+      };
+
+      /**
+       * Encodes the specified UserScores message. Does not implicitly {@link douyin.LinkMicMethod.UserScores.verify|verify} messages.
+       * @function encode
+       * @memberof douyin.LinkMicMethod.UserScores
+       * @static
+       * @param {douyin.LinkMicMethod.IUserScores} message UserScores message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      UserScores.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (message.score != null && Object.hasOwnProperty.call(message, "score"))
+          writer.uint32(/* id 1, wireType 0 =*/ 8).uint64(message.score);
+        if (message.userId != null && Object.hasOwnProperty.call(message, "userId"))
+          writer.uint32(/* id 2, wireType 0 =*/ 16).uint64(message.userId);
+        if (message.battleRank != null && Object.hasOwnProperty.call(message, "battleRank"))
+          writer.uint32(/* id 8, wireType 0 =*/ 64).uint64(message.battleRank);
+        if (
+          message.multiPkTeamScore != null &&
+          Object.hasOwnProperty.call(message, "multiPkTeamScore")
+        )
+          writer.uint32(/* id 11, wireType 0 =*/ 88).uint64(message.multiPkTeamScore);
+        if (
+          message.multiPkTeamRank != null &&
+          Object.hasOwnProperty.call(message, "multiPkTeamRank")
+        )
+          writer.uint32(/* id 12, wireType 0 =*/ 96).uint64(message.multiPkTeamRank);
+        return writer;
+      };
+
+      /**
+       * Encodes the specified UserScores message, length delimited. Does not implicitly {@link douyin.LinkMicMethod.UserScores.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof douyin.LinkMicMethod.UserScores
+       * @static
+       * @param {douyin.LinkMicMethod.IUserScores} message UserScores message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      UserScores.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes a UserScores message from the specified reader or buffer.
+       * @function decode
+       * @memberof douyin.LinkMicMethod.UserScores
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {douyin.LinkMicMethod.UserScores} UserScores
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      UserScores.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        let end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.douyin.LinkMicMethod.UserScores();
+        while (reader.pos < end) {
+          let tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.score = reader.uint64();
+              break;
+            }
+            case 2: {
+              message.userId = reader.uint64();
+              break;
+            }
+            case 8: {
+              message.battleRank = reader.uint64();
+              break;
+            }
+            case 11: {
+              message.multiPkTeamScore = reader.uint64();
+              break;
+            }
+            case 12: {
+              message.multiPkTeamRank = reader.uint64();
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes a UserScores message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof douyin.LinkMicMethod.UserScores
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {douyin.LinkMicMethod.UserScores} UserScores
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      UserScores.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies a UserScores message.
+       * @function verify
+       * @memberof douyin.LinkMicMethod.UserScores
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      UserScores.verify = function verify(message) {
+        if (typeof message !== "object" || message === null) return "object expected";
+        if (message.score != null && message.hasOwnProperty("score"))
+          if (
+            !$util.isInteger(message.score) &&
+            !(
+              message.score &&
+              $util.isInteger(message.score.low) &&
+              $util.isInteger(message.score.high)
+            )
+          )
+            return "score: integer|Long expected";
+        if (message.userId != null && message.hasOwnProperty("userId"))
+          if (
+            !$util.isInteger(message.userId) &&
+            !(
+              message.userId &&
+              $util.isInteger(message.userId.low) &&
+              $util.isInteger(message.userId.high)
+            )
+          )
+            return "userId: integer|Long expected";
+        if (message.battleRank != null && message.hasOwnProperty("battleRank"))
+          if (
+            !$util.isInteger(message.battleRank) &&
+            !(
+              message.battleRank &&
+              $util.isInteger(message.battleRank.low) &&
+              $util.isInteger(message.battleRank.high)
+            )
+          )
+            return "battleRank: integer|Long expected";
+        if (message.multiPkTeamScore != null && message.hasOwnProperty("multiPkTeamScore"))
+          if (
+            !$util.isInteger(message.multiPkTeamScore) &&
+            !(
+              message.multiPkTeamScore &&
+              $util.isInteger(message.multiPkTeamScore.low) &&
+              $util.isInteger(message.multiPkTeamScore.high)
+            )
+          )
+            return "multiPkTeamScore: integer|Long expected";
+        if (message.multiPkTeamRank != null && message.hasOwnProperty("multiPkTeamRank"))
+          if (
+            !$util.isInteger(message.multiPkTeamRank) &&
+            !(
+              message.multiPkTeamRank &&
+              $util.isInteger(message.multiPkTeamRank.low) &&
+              $util.isInteger(message.multiPkTeamRank.high)
+            )
+          )
+            return "multiPkTeamRank: integer|Long expected";
+        return null;
+      };
+
+      /**
+       * Creates a UserScores message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof douyin.LinkMicMethod.UserScores
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {douyin.LinkMicMethod.UserScores} UserScores
+       */
+      UserScores.fromObject = function fromObject(object) {
+        if (object instanceof $root.douyin.LinkMicMethod.UserScores) return object;
+        let message = new $root.douyin.LinkMicMethod.UserScores();
+        if (object.score != null)
+          if ($util.Long) (message.score = $util.Long.fromValue(object.score)).unsigned = true;
+          else if (typeof object.score === "string") message.score = parseInt(object.score, 10);
+          else if (typeof object.score === "number") message.score = object.score;
+          else if (typeof object.score === "object")
+            message.score = new $util.LongBits(
+              object.score.low >>> 0,
+              object.score.high >>> 0,
+            ).toNumber(true);
+        if (object.userId != null)
+          if ($util.Long) (message.userId = $util.Long.fromValue(object.userId)).unsigned = true;
+          else if (typeof object.userId === "string") message.userId = parseInt(object.userId, 10);
+          else if (typeof object.userId === "number") message.userId = object.userId;
+          else if (typeof object.userId === "object")
+            message.userId = new $util.LongBits(
+              object.userId.low >>> 0,
+              object.userId.high >>> 0,
+            ).toNumber(true);
+        if (object.battleRank != null)
+          if ($util.Long)
+            (message.battleRank = $util.Long.fromValue(object.battleRank)).unsigned = true;
+          else if (typeof object.battleRank === "string")
+            message.battleRank = parseInt(object.battleRank, 10);
+          else if (typeof object.battleRank === "number") message.battleRank = object.battleRank;
+          else if (typeof object.battleRank === "object")
+            message.battleRank = new $util.LongBits(
+              object.battleRank.low >>> 0,
+              object.battleRank.high >>> 0,
+            ).toNumber(true);
+        if (object.multiPkTeamScore != null)
+          if ($util.Long)
+            (message.multiPkTeamScore = $util.Long.fromValue(object.multiPkTeamScore)).unsigned =
+              true;
+          else if (typeof object.multiPkTeamScore === "string")
+            message.multiPkTeamScore = parseInt(object.multiPkTeamScore, 10);
+          else if (typeof object.multiPkTeamScore === "number")
+            message.multiPkTeamScore = object.multiPkTeamScore;
+          else if (typeof object.multiPkTeamScore === "object")
+            message.multiPkTeamScore = new $util.LongBits(
+              object.multiPkTeamScore.low >>> 0,
+              object.multiPkTeamScore.high >>> 0,
+            ).toNumber(true);
+        if (object.multiPkTeamRank != null)
+          if ($util.Long)
+            (message.multiPkTeamRank = $util.Long.fromValue(object.multiPkTeamRank)).unsigned =
+              true;
+          else if (typeof object.multiPkTeamRank === "string")
+            message.multiPkTeamRank = parseInt(object.multiPkTeamRank, 10);
+          else if (typeof object.multiPkTeamRank === "number")
+            message.multiPkTeamRank = object.multiPkTeamRank;
+          else if (typeof object.multiPkTeamRank === "object")
+            message.multiPkTeamRank = new $util.LongBits(
+              object.multiPkTeamRank.low >>> 0,
+              object.multiPkTeamRank.high >>> 0,
+            ).toNumber(true);
+        return message;
+      };
+
+      /**
+       * Creates a plain object from a UserScores message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof douyin.LinkMicMethod.UserScores
+       * @static
+       * @param {douyin.LinkMicMethod.UserScores} message UserScores
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      UserScores.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        let object = {};
+        if (options.defaults) {
+          if ($util.Long) {
+            let long = new $util.Long(0, 0, true);
+            object.score =
+              options.longs === String
+                ? long.toString()
+                : options.longs === Number
+                  ? long.toNumber()
+                  : long;
+          } else object.score = options.longs === String ? "0" : 0;
+          if ($util.Long) {
+            let long = new $util.Long(0, 0, true);
+            object.userId =
+              options.longs === String
+                ? long.toString()
+                : options.longs === Number
+                  ? long.toNumber()
+                  : long;
+          } else object.userId = options.longs === String ? "0" : 0;
+          if ($util.Long) {
+            let long = new $util.Long(0, 0, true);
+            object.battleRank =
+              options.longs === String
+                ? long.toString()
+                : options.longs === Number
+                  ? long.toNumber()
+                  : long;
+          } else object.battleRank = options.longs === String ? "0" : 0;
+          if ($util.Long) {
+            let long = new $util.Long(0, 0, true);
+            object.multiPkTeamScore =
+              options.longs === String
+                ? long.toString()
+                : options.longs === Number
+                  ? long.toNumber()
+                  : long;
+          } else object.multiPkTeamScore = options.longs === String ? "0" : 0;
+          if ($util.Long) {
+            let long = new $util.Long(0, 0, true);
+            object.multiPkTeamRank =
+              options.longs === String
+                ? long.toString()
+                : options.longs === Number
+                  ? long.toNumber()
+                  : long;
+          } else object.multiPkTeamRank = options.longs === String ? "0" : 0;
+        }
+        if (message.score != null && message.hasOwnProperty("score"))
+          if (typeof message.score === "number")
+            object.score = options.longs === String ? String(message.score) : message.score;
+          else
+            object.score =
+              options.longs === String
+                ? $util.Long.prototype.toString.call(message.score)
+                : options.longs === Number
+                  ? new $util.LongBits(message.score.low >>> 0, message.score.high >>> 0).toNumber(
+                      true,
+                    )
+                  : message.score;
+        if (message.userId != null && message.hasOwnProperty("userId"))
+          if (typeof message.userId === "number")
+            object.userId = options.longs === String ? String(message.userId) : message.userId;
+          else
+            object.userId =
+              options.longs === String
+                ? $util.Long.prototype.toString.call(message.userId)
+                : options.longs === Number
+                  ? new $util.LongBits(
+                      message.userId.low >>> 0,
+                      message.userId.high >>> 0,
+                    ).toNumber(true)
+                  : message.userId;
+        if (message.battleRank != null && message.hasOwnProperty("battleRank"))
+          if (typeof message.battleRank === "number")
+            object.battleRank =
+              options.longs === String ? String(message.battleRank) : message.battleRank;
+          else
+            object.battleRank =
+              options.longs === String
+                ? $util.Long.prototype.toString.call(message.battleRank)
+                : options.longs === Number
+                  ? new $util.LongBits(
+                      message.battleRank.low >>> 0,
+                      message.battleRank.high >>> 0,
+                    ).toNumber(true)
+                  : message.battleRank;
+        if (message.multiPkTeamScore != null && message.hasOwnProperty("multiPkTeamScore"))
+          if (typeof message.multiPkTeamScore === "number")
+            object.multiPkTeamScore =
+              options.longs === String
+                ? String(message.multiPkTeamScore)
+                : message.multiPkTeamScore;
+          else
+            object.multiPkTeamScore =
+              options.longs === String
+                ? $util.Long.prototype.toString.call(message.multiPkTeamScore)
+                : options.longs === Number
+                  ? new $util.LongBits(
+                      message.multiPkTeamScore.low >>> 0,
+                      message.multiPkTeamScore.high >>> 0,
+                    ).toNumber(true)
+                  : message.multiPkTeamScore;
+        if (message.multiPkTeamRank != null && message.hasOwnProperty("multiPkTeamRank"))
+          if (typeof message.multiPkTeamRank === "number")
+            object.multiPkTeamRank =
+              options.longs === String ? String(message.multiPkTeamRank) : message.multiPkTeamRank;
+          else
+            object.multiPkTeamRank =
+              options.longs === String
+                ? $util.Long.prototype.toString.call(message.multiPkTeamRank)
+                : options.longs === Number
+                  ? new $util.LongBits(
+                      message.multiPkTeamRank.low >>> 0,
+                      message.multiPkTeamRank.high >>> 0,
+                    ).toNumber(true)
+                  : message.multiPkTeamRank;
+        return object;
+      };
+
+      /**
+       * Converts this UserScores to JSON.
+       * @function toJSON
+       * @memberof douyin.LinkMicMethod.UserScores
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      UserScores.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for UserScores
+       * @function getTypeUrl
+       * @memberof douyin.LinkMicMethod.UserScores
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      UserScores.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/douyin.LinkMicMethod.UserScores";
+      };
+
+      return UserScores;
+    })();
+
+    return LinkMicMethod;
+  })();
+
+  douyin.LinkMicBattle = (function () {
+    /**
+     * Properties of a LinkMicBattle.
+     * @memberof douyin
+     * @interface ILinkMicBattle
+     * @property {douyin.ICommon|null} [common] LinkMicBattle common
+     * @property {douyin.IBattleSettings|null} [battleSettings] LinkMicBattle battleSettings
+     * @property {Object.<string,douyin.IBattleUserInfo>|null} [userInfos] LinkMicBattle userInfos
+     */
+
+    /**
+     * Constructs a new LinkMicBattle.
+     * @memberof douyin
+     * @classdesc Represents a LinkMicBattle.
+     * @implements ILinkMicBattle
+     * @constructor
+     * @param {douyin.ILinkMicBattle=} [properties] Properties to set
+     */
+    function LinkMicBattle(properties) {
+      this.userInfos = {};
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * LinkMicBattle common.
+     * @member {douyin.ICommon|null|undefined} common
+     * @memberof douyin.LinkMicBattle
+     * @instance
+     */
+    LinkMicBattle.prototype.common = null;
+
+    /**
+     * LinkMicBattle battleSettings.
+     * @member {douyin.IBattleSettings|null|undefined} battleSettings
+     * @memberof douyin.LinkMicBattle
+     * @instance
+     */
+    LinkMicBattle.prototype.battleSettings = null;
+
+    /**
+     * LinkMicBattle userInfos.
+     * @member {Object.<string,douyin.IBattleUserInfo>} userInfos
+     * @memberof douyin.LinkMicBattle
+     * @instance
+     */
+    LinkMicBattle.prototype.userInfos = $util.emptyObject;
+
+    /**
+     * Creates a new LinkMicBattle instance using the specified properties.
+     * @function create
+     * @memberof douyin.LinkMicBattle
+     * @static
+     * @param {douyin.ILinkMicBattle=} [properties] Properties to set
+     * @returns {douyin.LinkMicBattle} LinkMicBattle instance
+     */
+    LinkMicBattle.create = function create(properties) {
+      return new LinkMicBattle(properties);
+    };
+
+    /**
+     * Encodes the specified LinkMicBattle message. Does not implicitly {@link douyin.LinkMicBattle.verify|verify} messages.
+     * @function encode
+     * @memberof douyin.LinkMicBattle
+     * @static
+     * @param {douyin.ILinkMicBattle} message LinkMicBattle message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    LinkMicBattle.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.common != null && Object.hasOwnProperty.call(message, "common"))
+        $root.douyin.Common.encode(
+          message.common,
+          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+        ).ldelim();
+      if (message.battleSettings != null && Object.hasOwnProperty.call(message, "battleSettings"))
+        $root.douyin.BattleSettings.encode(
+          message.battleSettings,
+          writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+        ).ldelim();
+      if (message.userInfos != null && Object.hasOwnProperty.call(message, "userInfos"))
+        for (let keys = Object.keys(message.userInfos), i = 0; i < keys.length; ++i) {
+          writer
+            .uint32(/* id 6, wireType 2 =*/ 50)
+            .fork()
+            .uint32(/* id 1, wireType 0 =*/ 8)
+            .int64(keys[i]);
+          $root.douyin.BattleUserInfo.encode(
+            message.userInfos[keys[i]],
+            writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+          )
+            .ldelim()
+            .ldelim();
+        }
+      return writer;
+    };
+
+    /**
+     * Encodes the specified LinkMicBattle message, length delimited. Does not implicitly {@link douyin.LinkMicBattle.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof douyin.LinkMicBattle
+     * @static
+     * @param {douyin.ILinkMicBattle} message LinkMicBattle message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    LinkMicBattle.encodeDelimited = function encodeDelimited(message, writer) {
+      return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a LinkMicBattle message from the specified reader or buffer.
+     * @function decode
+     * @memberof douyin.LinkMicBattle
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {douyin.LinkMicBattle} LinkMicBattle
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    LinkMicBattle.decode = function decode(reader, length) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.douyin.LinkMicBattle(),
+        key,
+        value;
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            message.common = $root.douyin.Common.decode(reader, reader.uint32());
+            break;
+          }
+          case 2: {
+            message.battleSettings = $root.douyin.BattleSettings.decode(reader, reader.uint32());
+            break;
+          }
+          case 6: {
+            if (message.userInfos === $util.emptyObject) message.userInfos = {};
+            let end2 = reader.uint32() + reader.pos;
+            key = 0;
+            value = null;
+            while (reader.pos < end2) {
+              let tag2 = reader.uint32();
+              switch (tag2 >>> 3) {
+                case 1:
+                  key = reader.int64();
+                  break;
+                case 2:
+                  value = $root.douyin.BattleUserInfo.decode(reader, reader.uint32());
+                  break;
+                default:
+                  reader.skipType(tag2 & 7);
+                  break;
+              }
+            }
+            message.userInfos[typeof key === "object" ? $util.longToHash(key) : key] = value;
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Decodes a LinkMicBattle message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof douyin.LinkMicBattle
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {douyin.LinkMicBattle} LinkMicBattle
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    LinkMicBattle.decodeDelimited = function decodeDelimited(reader) {
+      if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+      return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a LinkMicBattle message.
+     * @function verify
+     * @memberof douyin.LinkMicBattle
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    LinkMicBattle.verify = function verify(message) {
+      if (typeof message !== "object" || message === null) return "object expected";
+      if (message.common != null && message.hasOwnProperty("common")) {
+        let error = $root.douyin.Common.verify(message.common);
+        if (error) return "common." + error;
+      }
+      if (message.battleSettings != null && message.hasOwnProperty("battleSettings")) {
+        let error = $root.douyin.BattleSettings.verify(message.battleSettings);
+        if (error) return "battleSettings." + error;
+      }
+      if (message.userInfos != null && message.hasOwnProperty("userInfos")) {
+        if (!$util.isObject(message.userInfos)) return "userInfos: object expected";
+        let key = Object.keys(message.userInfos);
+        for (let i = 0; i < key.length; ++i) {
+          if (!$util.key64Re.test(key[i])) return "userInfos: integer|Long key{k:int64} expected";
+          {
+            let error = $root.douyin.BattleUserInfo.verify(message.userInfos[key[i]]);
+            if (error) return "userInfos." + error;
+          }
+        }
+      }
+      return null;
+    };
+
+    /**
+     * Creates a LinkMicBattle message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof douyin.LinkMicBattle
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {douyin.LinkMicBattle} LinkMicBattle
+     */
+    LinkMicBattle.fromObject = function fromObject(object) {
+      if (object instanceof $root.douyin.LinkMicBattle) return object;
+      let message = new $root.douyin.LinkMicBattle();
+      if (object.common != null) {
+        if (typeof object.common !== "object")
+          throw TypeError(".douyin.LinkMicBattle.common: object expected");
+        message.common = $root.douyin.Common.fromObject(object.common);
+      }
+      if (object.battleSettings != null) {
+        if (typeof object.battleSettings !== "object")
+          throw TypeError(".douyin.LinkMicBattle.battleSettings: object expected");
+        message.battleSettings = $root.douyin.BattleSettings.fromObject(object.battleSettings);
+      }
+      if (object.userInfos) {
+        if (typeof object.userInfos !== "object")
+          throw TypeError(".douyin.LinkMicBattle.userInfos: object expected");
+        message.userInfos = {};
+        for (let keys = Object.keys(object.userInfos), i = 0; i < keys.length; ++i) {
+          if (typeof object.userInfos[keys[i]] !== "object")
+            throw TypeError(".douyin.LinkMicBattle.userInfos: object expected");
+          message.userInfos[keys[i]] = $root.douyin.BattleUserInfo.fromObject(
+            object.userInfos[keys[i]],
+          );
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a LinkMicBattle message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof douyin.LinkMicBattle
+     * @static
+     * @param {douyin.LinkMicBattle} message LinkMicBattle
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    LinkMicBattle.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.objects || options.defaults) object.userInfos = {};
+      if (options.defaults) {
+        object.common = null;
+        object.battleSettings = null;
+      }
+      if (message.common != null && message.hasOwnProperty("common"))
+        object.common = $root.douyin.Common.toObject(message.common, options);
+      if (message.battleSettings != null && message.hasOwnProperty("battleSettings"))
+        object.battleSettings = $root.douyin.BattleSettings.toObject(
+          message.battleSettings,
+          options,
+        );
+      let keys2;
+      if (message.userInfos && (keys2 = Object.keys(message.userInfos)).length) {
+        object.userInfos = {};
+        for (let j = 0; j < keys2.length; ++j)
+          object.userInfos[keys2[j]] = $root.douyin.BattleUserInfo.toObject(
+            message.userInfos[keys2[j]],
+            options,
+          );
+      }
+      return object;
+    };
+
+    /**
+     * Converts this LinkMicBattle to JSON.
+     * @function toJSON
+     * @memberof douyin.LinkMicBattle
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    LinkMicBattle.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for LinkMicBattle
+     * @function getTypeUrl
+     * @memberof douyin.LinkMicBattle
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    LinkMicBattle.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/douyin.LinkMicBattle";
+    };
+
+    return LinkMicBattle;
+  })();
+
+  douyin.LinkMicBattleFinish = (function () {
+    /**
+     * Properties of a LinkMicBattleFinish.
+     * @memberof douyin
+     * @interface ILinkMicBattleFinish
+     * @property {douyin.ICommon|null} [common] LinkMicBattleFinish common
+     * @property {douyin.IBattleSettings|null} [battleSettings] LinkMicBattleFinish battleSettings
+     * @property {Object.<string,douyin.IBattleUserInfo>|null} [userInfos] LinkMicBattleFinish userInfos
+     */
+
+    /**
+     * Constructs a new LinkMicBattleFinish.
+     * @memberof douyin
+     * @classdesc Represents a LinkMicBattleFinish.
+     * @implements ILinkMicBattleFinish
+     * @constructor
+     * @param {douyin.ILinkMicBattleFinish=} [properties] Properties to set
+     */
+    function LinkMicBattleFinish(properties) {
+      this.userInfos = {};
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * LinkMicBattleFinish common.
+     * @member {douyin.ICommon|null|undefined} common
+     * @memberof douyin.LinkMicBattleFinish
+     * @instance
+     */
+    LinkMicBattleFinish.prototype.common = null;
+
+    /**
+     * LinkMicBattleFinish battleSettings.
+     * @member {douyin.IBattleSettings|null|undefined} battleSettings
+     * @memberof douyin.LinkMicBattleFinish
+     * @instance
+     */
+    LinkMicBattleFinish.prototype.battleSettings = null;
+
+    /**
+     * LinkMicBattleFinish userInfos.
+     * @member {Object.<string,douyin.IBattleUserInfo>} userInfos
+     * @memberof douyin.LinkMicBattleFinish
+     * @instance
+     */
+    LinkMicBattleFinish.prototype.userInfos = $util.emptyObject;
+
+    /**
+     * Creates a new LinkMicBattleFinish instance using the specified properties.
+     * @function create
+     * @memberof douyin.LinkMicBattleFinish
+     * @static
+     * @param {douyin.ILinkMicBattleFinish=} [properties] Properties to set
+     * @returns {douyin.LinkMicBattleFinish} LinkMicBattleFinish instance
+     */
+    LinkMicBattleFinish.create = function create(properties) {
+      return new LinkMicBattleFinish(properties);
+    };
+
+    /**
+     * Encodes the specified LinkMicBattleFinish message. Does not implicitly {@link douyin.LinkMicBattleFinish.verify|verify} messages.
+     * @function encode
+     * @memberof douyin.LinkMicBattleFinish
+     * @static
+     * @param {douyin.ILinkMicBattleFinish} message LinkMicBattleFinish message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    LinkMicBattleFinish.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.common != null && Object.hasOwnProperty.call(message, "common"))
+        $root.douyin.Common.encode(
+          message.common,
+          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+        ).ldelim();
+      if (message.battleSettings != null && Object.hasOwnProperty.call(message, "battleSettings"))
+        $root.douyin.BattleSettings.encode(
+          message.battleSettings,
+          writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+        ).ldelim();
+      if (message.userInfos != null && Object.hasOwnProperty.call(message, "userInfos"))
+        for (let keys = Object.keys(message.userInfos), i = 0; i < keys.length; ++i) {
+          writer
+            .uint32(/* id 12, wireType 2 =*/ 98)
+            .fork()
+            .uint32(/* id 1, wireType 0 =*/ 8)
+            .int64(keys[i]);
+          $root.douyin.BattleUserInfo.encode(
+            message.userInfos[keys[i]],
+            writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+          )
+            .ldelim()
+            .ldelim();
+        }
+      return writer;
+    };
+
+    /**
+     * Encodes the specified LinkMicBattleFinish message, length delimited. Does not implicitly {@link douyin.LinkMicBattleFinish.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof douyin.LinkMicBattleFinish
+     * @static
+     * @param {douyin.ILinkMicBattleFinish} message LinkMicBattleFinish message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    LinkMicBattleFinish.encodeDelimited = function encodeDelimited(message, writer) {
+      return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a LinkMicBattleFinish message from the specified reader or buffer.
+     * @function decode
+     * @memberof douyin.LinkMicBattleFinish
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {douyin.LinkMicBattleFinish} LinkMicBattleFinish
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    LinkMicBattleFinish.decode = function decode(reader, length) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.douyin.LinkMicBattleFinish(),
+        key,
+        value;
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            message.common = $root.douyin.Common.decode(reader, reader.uint32());
+            break;
+          }
+          case 2: {
+            message.battleSettings = $root.douyin.BattleSettings.decode(reader, reader.uint32());
+            break;
+          }
+          case 12: {
+            if (message.userInfos === $util.emptyObject) message.userInfos = {};
+            let end2 = reader.uint32() + reader.pos;
+            key = 0;
+            value = null;
+            while (reader.pos < end2) {
+              let tag2 = reader.uint32();
+              switch (tag2 >>> 3) {
+                case 1:
+                  key = reader.int64();
+                  break;
+                case 2:
+                  value = $root.douyin.BattleUserInfo.decode(reader, reader.uint32());
+                  break;
+                default:
+                  reader.skipType(tag2 & 7);
+                  break;
+              }
+            }
+            message.userInfos[typeof key === "object" ? $util.longToHash(key) : key] = value;
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Decodes a LinkMicBattleFinish message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof douyin.LinkMicBattleFinish
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {douyin.LinkMicBattleFinish} LinkMicBattleFinish
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    LinkMicBattleFinish.decodeDelimited = function decodeDelimited(reader) {
+      if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+      return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a LinkMicBattleFinish message.
+     * @function verify
+     * @memberof douyin.LinkMicBattleFinish
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    LinkMicBattleFinish.verify = function verify(message) {
+      if (typeof message !== "object" || message === null) return "object expected";
+      if (message.common != null && message.hasOwnProperty("common")) {
+        let error = $root.douyin.Common.verify(message.common);
+        if (error) return "common." + error;
+      }
+      if (message.battleSettings != null && message.hasOwnProperty("battleSettings")) {
+        let error = $root.douyin.BattleSettings.verify(message.battleSettings);
+        if (error) return "battleSettings." + error;
+      }
+      if (message.userInfos != null && message.hasOwnProperty("userInfos")) {
+        if (!$util.isObject(message.userInfos)) return "userInfos: object expected";
+        let key = Object.keys(message.userInfos);
+        for (let i = 0; i < key.length; ++i) {
+          if (!$util.key64Re.test(key[i])) return "userInfos: integer|Long key{k:int64} expected";
+          {
+            let error = $root.douyin.BattleUserInfo.verify(message.userInfos[key[i]]);
+            if (error) return "userInfos." + error;
+          }
+        }
+      }
+      return null;
+    };
+
+    /**
+     * Creates a LinkMicBattleFinish message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof douyin.LinkMicBattleFinish
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {douyin.LinkMicBattleFinish} LinkMicBattleFinish
+     */
+    LinkMicBattleFinish.fromObject = function fromObject(object) {
+      if (object instanceof $root.douyin.LinkMicBattleFinish) return object;
+      let message = new $root.douyin.LinkMicBattleFinish();
+      if (object.common != null) {
+        if (typeof object.common !== "object")
+          throw TypeError(".douyin.LinkMicBattleFinish.common: object expected");
+        message.common = $root.douyin.Common.fromObject(object.common);
+      }
+      if (object.battleSettings != null) {
+        if (typeof object.battleSettings !== "object")
+          throw TypeError(".douyin.LinkMicBattleFinish.battleSettings: object expected");
+        message.battleSettings = $root.douyin.BattleSettings.fromObject(object.battleSettings);
+      }
+      if (object.userInfos) {
+        if (typeof object.userInfos !== "object")
+          throw TypeError(".douyin.LinkMicBattleFinish.userInfos: object expected");
+        message.userInfos = {};
+        for (let keys = Object.keys(object.userInfos), i = 0; i < keys.length; ++i) {
+          if (typeof object.userInfos[keys[i]] !== "object")
+            throw TypeError(".douyin.LinkMicBattleFinish.userInfos: object expected");
+          message.userInfos[keys[i]] = $root.douyin.BattleUserInfo.fromObject(
+            object.userInfos[keys[i]],
+          );
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a LinkMicBattleFinish message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof douyin.LinkMicBattleFinish
+     * @static
+     * @param {douyin.LinkMicBattleFinish} message LinkMicBattleFinish
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    LinkMicBattleFinish.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.objects || options.defaults) object.userInfos = {};
+      if (options.defaults) {
+        object.common = null;
+        object.battleSettings = null;
+      }
+      if (message.common != null && message.hasOwnProperty("common"))
+        object.common = $root.douyin.Common.toObject(message.common, options);
+      if (message.battleSettings != null && message.hasOwnProperty("battleSettings"))
+        object.battleSettings = $root.douyin.BattleSettings.toObject(
+          message.battleSettings,
+          options,
+        );
+      let keys2;
+      if (message.userInfos && (keys2 = Object.keys(message.userInfos)).length) {
+        object.userInfos = {};
+        for (let j = 0; j < keys2.length; ++j)
+          object.userInfos[keys2[j]] = $root.douyin.BattleUserInfo.toObject(
+            message.userInfos[keys2[j]],
+            options,
+          );
+      }
+      return object;
+    };
+
+    /**
+     * Converts this LinkMicBattleFinish to JSON.
+     * @function toJSON
+     * @memberof douyin.LinkMicBattleFinish
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    LinkMicBattleFinish.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for LinkMicBattleFinish
+     * @function getTypeUrl
+     * @memberof douyin.LinkMicBattleFinish
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    LinkMicBattleFinish.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/douyin.LinkMicBattleFinish";
+    };
+
+    return LinkMicBattleFinish;
+  })();
+
+  douyin.BattleSettings = (function () {
+    /**
+     * Properties of a BattleSettings.
+     * @memberof douyin
+     * @interface IBattleSettings
+     * @property {number|Long|null} [battleId] BattleSettings battleId
+     * @property {number|Long|null} [channelId] BattleSettings channelId
+     */
+
+    /**
+     * Constructs a new BattleSettings.
+     * @memberof douyin
+     * @classdesc Represents a BattleSettings.
+     * @implements IBattleSettings
+     * @constructor
+     * @param {douyin.IBattleSettings=} [properties] Properties to set
+     */
+    function BattleSettings(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * BattleSettings battleId.
+     * @member {number|Long} battleId
+     * @memberof douyin.BattleSettings
+     * @instance
+     */
+    BattleSettings.prototype.battleId = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+    /**
+     * BattleSettings channelId.
+     * @member {number|Long} channelId
+     * @memberof douyin.BattleSettings
+     * @instance
+     */
+    BattleSettings.prototype.channelId = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+    /**
+     * Creates a new BattleSettings instance using the specified properties.
+     * @function create
+     * @memberof douyin.BattleSettings
+     * @static
+     * @param {douyin.IBattleSettings=} [properties] Properties to set
+     * @returns {douyin.BattleSettings} BattleSettings instance
+     */
+    BattleSettings.create = function create(properties) {
+      return new BattleSettings(properties);
+    };
+
+    /**
+     * Encodes the specified BattleSettings message. Does not implicitly {@link douyin.BattleSettings.verify|verify} messages.
+     * @function encode
+     * @memberof douyin.BattleSettings
+     * @static
+     * @param {douyin.IBattleSettings} message BattleSettings message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    BattleSettings.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.battleId != null && Object.hasOwnProperty.call(message, "battleId"))
+        writer.uint32(/* id 2, wireType 0 =*/ 16).uint64(message.battleId);
+      if (message.channelId != null && Object.hasOwnProperty.call(message, "channelId"))
+        writer.uint32(/* id 6, wireType 0 =*/ 48).uint64(message.channelId);
+      return writer;
+    };
+
+    /**
+     * Encodes the specified BattleSettings message, length delimited. Does not implicitly {@link douyin.BattleSettings.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof douyin.BattleSettings
+     * @static
+     * @param {douyin.IBattleSettings} message BattleSettings message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    BattleSettings.encodeDelimited = function encodeDelimited(message, writer) {
+      return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a BattleSettings message from the specified reader or buffer.
+     * @function decode
+     * @memberof douyin.BattleSettings
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {douyin.BattleSettings} BattleSettings
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    BattleSettings.decode = function decode(reader, length) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.douyin.BattleSettings();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 2: {
+            message.battleId = reader.uint64();
+            break;
+          }
+          case 6: {
+            message.channelId = reader.uint64();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Decodes a BattleSettings message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof douyin.BattleSettings
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {douyin.BattleSettings} BattleSettings
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    BattleSettings.decodeDelimited = function decodeDelimited(reader) {
+      if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+      return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a BattleSettings message.
+     * @function verify
+     * @memberof douyin.BattleSettings
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    BattleSettings.verify = function verify(message) {
+      if (typeof message !== "object" || message === null) return "object expected";
+      if (message.battleId != null && message.hasOwnProperty("battleId"))
+        if (
+          !$util.isInteger(message.battleId) &&
+          !(
+            message.battleId &&
+            $util.isInteger(message.battleId.low) &&
+            $util.isInteger(message.battleId.high)
+          )
+        )
+          return "battleId: integer|Long expected";
+      if (message.channelId != null && message.hasOwnProperty("channelId"))
+        if (
+          !$util.isInteger(message.channelId) &&
+          !(
+            message.channelId &&
+            $util.isInteger(message.channelId.low) &&
+            $util.isInteger(message.channelId.high)
+          )
+        )
+          return "channelId: integer|Long expected";
+      return null;
+    };
+
+    /**
+     * Creates a BattleSettings message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof douyin.BattleSettings
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {douyin.BattleSettings} BattleSettings
+     */
+    BattleSettings.fromObject = function fromObject(object) {
+      if (object instanceof $root.douyin.BattleSettings) return object;
+      let message = new $root.douyin.BattleSettings();
+      if (object.battleId != null)
+        if ($util.Long) (message.battleId = $util.Long.fromValue(object.battleId)).unsigned = true;
+        else if (typeof object.battleId === "string")
+          message.battleId = parseInt(object.battleId, 10);
+        else if (typeof object.battleId === "number") message.battleId = object.battleId;
+        else if (typeof object.battleId === "object")
+          message.battleId = new $util.LongBits(
+            object.battleId.low >>> 0,
+            object.battleId.high >>> 0,
+          ).toNumber(true);
+      if (object.channelId != null)
+        if ($util.Long)
+          (message.channelId = $util.Long.fromValue(object.channelId)).unsigned = true;
+        else if (typeof object.channelId === "string")
+          message.channelId = parseInt(object.channelId, 10);
+        else if (typeof object.channelId === "number") message.channelId = object.channelId;
+        else if (typeof object.channelId === "object")
+          message.channelId = new $util.LongBits(
+            object.channelId.low >>> 0,
+            object.channelId.high >>> 0,
+          ).toNumber(true);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a BattleSettings message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof douyin.BattleSettings
+     * @static
+     * @param {douyin.BattleSettings} message BattleSettings
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    BattleSettings.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) {
+        if ($util.Long) {
+          let long = new $util.Long(0, 0, true);
+          object.battleId =
+            options.longs === String
+              ? long.toString()
+              : options.longs === Number
+                ? long.toNumber()
+                : long;
+        } else object.battleId = options.longs === String ? "0" : 0;
+        if ($util.Long) {
+          let long = new $util.Long(0, 0, true);
+          object.channelId =
+            options.longs === String
+              ? long.toString()
+              : options.longs === Number
+                ? long.toNumber()
+                : long;
+        } else object.channelId = options.longs === String ? "0" : 0;
+      }
+      if (message.battleId != null && message.hasOwnProperty("battleId"))
+        if (typeof message.battleId === "number")
+          object.battleId = options.longs === String ? String(message.battleId) : message.battleId;
+        else
+          object.battleId =
+            options.longs === String
+              ? $util.Long.prototype.toString.call(message.battleId)
+              : options.longs === Number
+                ? new $util.LongBits(
+                    message.battleId.low >>> 0,
+                    message.battleId.high >>> 0,
+                  ).toNumber(true)
+                : message.battleId;
+      if (message.channelId != null && message.hasOwnProperty("channelId"))
+        if (typeof message.channelId === "number")
+          object.channelId =
+            options.longs === String ? String(message.channelId) : message.channelId;
+        else
+          object.channelId =
+            options.longs === String
+              ? $util.Long.prototype.toString.call(message.channelId)
+              : options.longs === Number
+                ? new $util.LongBits(
+                    message.channelId.low >>> 0,
+                    message.channelId.high >>> 0,
+                  ).toNumber(true)
+                : message.channelId;
+      return object;
+    };
+
+    /**
+     * Converts this BattleSettings to JSON.
+     * @function toJSON
+     * @memberof douyin.BattleSettings
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    BattleSettings.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for BattleSettings
+     * @function getTypeUrl
+     * @memberof douyin.BattleSettings
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    BattleSettings.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/douyin.BattleSettings";
+    };
+
+    return BattleSettings;
+  })();
+
+  douyin.BattleUserInfo = (function () {
+    /**
+     * Properties of a BattleUserInfo.
+     * @memberof douyin
+     * @interface IBattleUserInfo
+     * @property {douyin.BattleUserInfo.IBaseUserInfo|null} [user] BattleUserInfo user
+     */
+
+    /**
+     * Constructs a new BattleUserInfo.
+     * @memberof douyin
+     * @classdesc Represents a BattleUserInfo.
+     * @implements IBattleUserInfo
+     * @constructor
+     * @param {douyin.IBattleUserInfo=} [properties] Properties to set
+     */
+    function BattleUserInfo(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * BattleUserInfo user.
+     * @member {douyin.BattleUserInfo.IBaseUserInfo|null|undefined} user
+     * @memberof douyin.BattleUserInfo
+     * @instance
+     */
+    BattleUserInfo.prototype.user = null;
+
+    /**
+     * Creates a new BattleUserInfo instance using the specified properties.
+     * @function create
+     * @memberof douyin.BattleUserInfo
+     * @static
+     * @param {douyin.IBattleUserInfo=} [properties] Properties to set
+     * @returns {douyin.BattleUserInfo} BattleUserInfo instance
+     */
+    BattleUserInfo.create = function create(properties) {
+      return new BattleUserInfo(properties);
+    };
+
+    /**
+     * Encodes the specified BattleUserInfo message. Does not implicitly {@link douyin.BattleUserInfo.verify|verify} messages.
+     * @function encode
+     * @memberof douyin.BattleUserInfo
+     * @static
+     * @param {douyin.IBattleUserInfo} message BattleUserInfo message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    BattleUserInfo.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.user != null && Object.hasOwnProperty.call(message, "user"))
+        $root.douyin.BattleUserInfo.BaseUserInfo.encode(
+          message.user,
+          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+        ).ldelim();
+      return writer;
+    };
+
+    /**
+     * Encodes the specified BattleUserInfo message, length delimited. Does not implicitly {@link douyin.BattleUserInfo.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof douyin.BattleUserInfo
+     * @static
+     * @param {douyin.IBattleUserInfo} message BattleUserInfo message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    BattleUserInfo.encodeDelimited = function encodeDelimited(message, writer) {
+      return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a BattleUserInfo message from the specified reader or buffer.
+     * @function decode
+     * @memberof douyin.BattleUserInfo
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {douyin.BattleUserInfo} BattleUserInfo
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    BattleUserInfo.decode = function decode(reader, length) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.douyin.BattleUserInfo();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            message.user = $root.douyin.BattleUserInfo.BaseUserInfo.decode(reader, reader.uint32());
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Decodes a BattleUserInfo message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof douyin.BattleUserInfo
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {douyin.BattleUserInfo} BattleUserInfo
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    BattleUserInfo.decodeDelimited = function decodeDelimited(reader) {
+      if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+      return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a BattleUserInfo message.
+     * @function verify
+     * @memberof douyin.BattleUserInfo
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    BattleUserInfo.verify = function verify(message) {
+      if (typeof message !== "object" || message === null) return "object expected";
+      if (message.user != null && message.hasOwnProperty("user")) {
+        let error = $root.douyin.BattleUserInfo.BaseUserInfo.verify(message.user);
+        if (error) return "user." + error;
+      }
+      return null;
+    };
+
+    /**
+     * Creates a BattleUserInfo message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof douyin.BattleUserInfo
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {douyin.BattleUserInfo} BattleUserInfo
+     */
+    BattleUserInfo.fromObject = function fromObject(object) {
+      if (object instanceof $root.douyin.BattleUserInfo) return object;
+      let message = new $root.douyin.BattleUserInfo();
+      if (object.user != null) {
+        if (typeof object.user !== "object")
+          throw TypeError(".douyin.BattleUserInfo.user: object expected");
+        message.user = $root.douyin.BattleUserInfo.BaseUserInfo.fromObject(object.user);
+      }
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a BattleUserInfo message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof douyin.BattleUserInfo
+     * @static
+     * @param {douyin.BattleUserInfo} message BattleUserInfo
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    BattleUserInfo.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) object.user = null;
+      if (message.user != null && message.hasOwnProperty("user"))
+        object.user = $root.douyin.BattleUserInfo.BaseUserInfo.toObject(message.user, options);
+      return object;
+    };
+
+    /**
+     * Converts this BattleUserInfo to JSON.
+     * @function toJSON
+     * @memberof douyin.BattleUserInfo
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    BattleUserInfo.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for BattleUserInfo
+     * @function getTypeUrl
+     * @memberof douyin.BattleUserInfo
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    BattleUserInfo.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/douyin.BattleUserInfo";
+    };
+
+    BattleUserInfo.BaseUserInfo = (function () {
+      /**
+       * Properties of a BaseUserInfo.
+       * @memberof douyin.BattleUserInfo
+       * @interface IBaseUserInfo
+       * @property {number|Long|null} [userId] BaseUserInfo userId
+       * @property {string|null} [nickName] BaseUserInfo nickName
+       * @property {string|null} [userIdStr] BaseUserInfo userIdStr
+       */
+
+      /**
+       * Constructs a new BaseUserInfo.
+       * @memberof douyin.BattleUserInfo
+       * @classdesc Represents a BaseUserInfo.
+       * @implements IBaseUserInfo
+       * @constructor
+       * @param {douyin.BattleUserInfo.IBaseUserInfo=} [properties] Properties to set
+       */
+      function BaseUserInfo(properties) {
+        if (properties)
+          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * BaseUserInfo userId.
+       * @member {number|Long} userId
+       * @memberof douyin.BattleUserInfo.BaseUserInfo
+       * @instance
+       */
+      BaseUserInfo.prototype.userId = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+      /**
+       * BaseUserInfo nickName.
+       * @member {string} nickName
+       * @memberof douyin.BattleUserInfo.BaseUserInfo
+       * @instance
+       */
+      BaseUserInfo.prototype.nickName = "";
+
+      /**
+       * BaseUserInfo userIdStr.
+       * @member {string} userIdStr
+       * @memberof douyin.BattleUserInfo.BaseUserInfo
+       * @instance
+       */
+      BaseUserInfo.prototype.userIdStr = "";
+
+      /**
+       * Creates a new BaseUserInfo instance using the specified properties.
+       * @function create
+       * @memberof douyin.BattleUserInfo.BaseUserInfo
+       * @static
+       * @param {douyin.BattleUserInfo.IBaseUserInfo=} [properties] Properties to set
+       * @returns {douyin.BattleUserInfo.BaseUserInfo} BaseUserInfo instance
+       */
+      BaseUserInfo.create = function create(properties) {
+        return new BaseUserInfo(properties);
+      };
+
+      /**
+       * Encodes the specified BaseUserInfo message. Does not implicitly {@link douyin.BattleUserInfo.BaseUserInfo.verify|verify} messages.
+       * @function encode
+       * @memberof douyin.BattleUserInfo.BaseUserInfo
+       * @static
+       * @param {douyin.BattleUserInfo.IBaseUserInfo} message BaseUserInfo message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      BaseUserInfo.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (message.userId != null && Object.hasOwnProperty.call(message, "userId"))
+          writer.uint32(/* id 1, wireType 0 =*/ 8).uint64(message.userId);
+        if (message.nickName != null && Object.hasOwnProperty.call(message, "nickName"))
+          writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.nickName);
+        if (message.userIdStr != null && Object.hasOwnProperty.call(message, "userIdStr"))
+          writer.uint32(/* id 5, wireType 2 =*/ 42).string(message.userIdStr);
+        return writer;
+      };
+
+      /**
+       * Encodes the specified BaseUserInfo message, length delimited. Does not implicitly {@link douyin.BattleUserInfo.BaseUserInfo.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof douyin.BattleUserInfo.BaseUserInfo
+       * @static
+       * @param {douyin.BattleUserInfo.IBaseUserInfo} message BaseUserInfo message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      BaseUserInfo.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes a BaseUserInfo message from the specified reader or buffer.
+       * @function decode
+       * @memberof douyin.BattleUserInfo.BaseUserInfo
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {douyin.BattleUserInfo.BaseUserInfo} BaseUserInfo
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      BaseUserInfo.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        let end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.douyin.BattleUserInfo.BaseUserInfo();
+        while (reader.pos < end) {
+          let tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.userId = reader.uint64();
+              break;
+            }
+            case 2: {
+              message.nickName = reader.string();
+              break;
+            }
+            case 5: {
+              message.userIdStr = reader.string();
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes a BaseUserInfo message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof douyin.BattleUserInfo.BaseUserInfo
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {douyin.BattleUserInfo.BaseUserInfo} BaseUserInfo
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      BaseUserInfo.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies a BaseUserInfo message.
+       * @function verify
+       * @memberof douyin.BattleUserInfo.BaseUserInfo
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      BaseUserInfo.verify = function verify(message) {
+        if (typeof message !== "object" || message === null) return "object expected";
+        if (message.userId != null && message.hasOwnProperty("userId"))
+          if (
+            !$util.isInteger(message.userId) &&
+            !(
+              message.userId &&
+              $util.isInteger(message.userId.low) &&
+              $util.isInteger(message.userId.high)
+            )
+          )
+            return "userId: integer|Long expected";
+        if (message.nickName != null && message.hasOwnProperty("nickName"))
+          if (!$util.isString(message.nickName)) return "nickName: string expected";
+        if (message.userIdStr != null && message.hasOwnProperty("userIdStr"))
+          if (!$util.isString(message.userIdStr)) return "userIdStr: string expected";
+        return null;
+      };
+
+      /**
+       * Creates a BaseUserInfo message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof douyin.BattleUserInfo.BaseUserInfo
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {douyin.BattleUserInfo.BaseUserInfo} BaseUserInfo
+       */
+      BaseUserInfo.fromObject = function fromObject(object) {
+        if (object instanceof $root.douyin.BattleUserInfo.BaseUserInfo) return object;
+        let message = new $root.douyin.BattleUserInfo.BaseUserInfo();
+        if (object.userId != null)
+          if ($util.Long) (message.userId = $util.Long.fromValue(object.userId)).unsigned = true;
+          else if (typeof object.userId === "string") message.userId = parseInt(object.userId, 10);
+          else if (typeof object.userId === "number") message.userId = object.userId;
+          else if (typeof object.userId === "object")
+            message.userId = new $util.LongBits(
+              object.userId.low >>> 0,
+              object.userId.high >>> 0,
+            ).toNumber(true);
+        if (object.nickName != null) message.nickName = String(object.nickName);
+        if (object.userIdStr != null) message.userIdStr = String(object.userIdStr);
+        return message;
+      };
+
+      /**
+       * Creates a plain object from a BaseUserInfo message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof douyin.BattleUserInfo.BaseUserInfo
+       * @static
+       * @param {douyin.BattleUserInfo.BaseUserInfo} message BaseUserInfo
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      BaseUserInfo.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        let object = {};
+        if (options.defaults) {
+          if ($util.Long) {
+            let long = new $util.Long(0, 0, true);
+            object.userId =
+              options.longs === String
+                ? long.toString()
+                : options.longs === Number
+                  ? long.toNumber()
+                  : long;
+          } else object.userId = options.longs === String ? "0" : 0;
+          object.nickName = "";
+          object.userIdStr = "";
+        }
+        if (message.userId != null && message.hasOwnProperty("userId"))
+          if (typeof message.userId === "number")
+            object.userId = options.longs === String ? String(message.userId) : message.userId;
+          else
+            object.userId =
+              options.longs === String
+                ? $util.Long.prototype.toString.call(message.userId)
+                : options.longs === Number
+                  ? new $util.LongBits(
+                      message.userId.low >>> 0,
+                      message.userId.high >>> 0,
+                    ).toNumber(true)
+                  : message.userId;
+        if (message.nickName != null && message.hasOwnProperty("nickName"))
+          object.nickName = message.nickName;
+        if (message.userIdStr != null && message.hasOwnProperty("userIdStr"))
+          object.userIdStr = message.userIdStr;
+        return object;
+      };
+
+      /**
+       * Converts this BaseUserInfo to JSON.
+       * @function toJSON
+       * @memberof douyin.BattleUserInfo.BaseUserInfo
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      BaseUserInfo.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for BaseUserInfo
+       * @function getTypeUrl
+       * @memberof douyin.BattleUserInfo.BaseUserInfo
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      BaseUserInfo.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/douyin.BattleUserInfo.BaseUserInfo";
+      };
+
+      return BaseUserInfo;
+    })();
+
+    return BattleUserInfo;
+  })();
+
   return douyin;
 })());
 

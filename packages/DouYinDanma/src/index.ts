@@ -1,9 +1,47 @@
 import WebSocket from "ws";
 import { TypedEmitter } from "tiny-typed-emitter";
-
+import Long from "long";
+// 必须 import `/minimal` 而不是主入口：`proto.js` 用的是 `protobufjs/minimal`，
+// 只有同一份模块实例，下面的 `util.Long = Long` 才能注入到解码器实际使用的 util。
+// 带 `.js` 后缀是因为 protobufjs 无 `exports` 字段，Node16 解析不到裸子路径的类型；
+// 而 protobufjs 的 files 里自带 `minimal.d.ts`，加后缀后 TS 可直接定位到它。
+import * as protobufMinimal from "protobufjs/minimal.js";
 import { decompressGzip, getXMsStub, getSignature, getUserUniqueId } from "./utils.js";
 import protobuf from "./proto.js";
+
 import { getCookie } from "./api.js";
+
+/**
+ * 【关键修复】显式注入 Long，避免 19 位 uint64 ID 在 decode 阶段被读成浮点数。
+ *
+ * 背景：
+ * protobufjs 通过 `util.inquire("long")` 加载 long 库，而 @protobufjs/inquire 的实现是
+ * `eval("require")("long")` —— 源码注释明写 "hides the call from bundlers"。
+ * 打包器静态分析看不到这条依赖，long 不会进产物，运行时解析失败 → util.Long 为 null。
+ *
+ * 后果（protobufjs/src/reader.js 的 Reader._configure，注意 fn 只求值一次）：
+ *   var fn = util.Long ? "toLong" : "toNumber";
+ * util.Long 为 null 时 fn 被绑成 "toNumber"，所有 uint64 字段
+ * （roomId / msgId / channelId / userId）在 decode 阶段就被读成 JS 浮点数，
+ * 超过 2^53 的 19 位 ID 低位被抹零：
+ *   7694659564742265636 → 7694659564742266000
+ * 此后即便 toObject({ longs: String }) 也救不回来 —— 值已经是浮点数了。
+ *
+ * 修复：
+ * 1. 用**静态 import** 引入 long（打包器可见，会被打进产物）
+ * 2. 显式赋值 util.Long
+ * 3. 调 configure() 让 Reader 重新绑定 fn = "toLong"
+ */
+protobufMinimal.util.Long = Long;
+protobufMinimal.configure();
+
+// 启动自检：宁可显式失败，也不要静默退化回 float64 而无人察觉
+if (!protobufMinimal.util.Long) {
+  throw new Error(
+    "[DouYinDanma] Long 注入失败：protobufjs 的 util.Long 为空，19 位 ID 会丢失精度。" +
+      "请检查 long 依赖是否已正确安装。",
+  );
+}
 
 import type {
   ChatMessage,
@@ -17,6 +55,9 @@ import type {
   Message,
   PrivilegeScreenChatMessage,
   ScreenChatMessage,
+  LinkMicBattleMessage,
+  LinkMicBattleFinishMessage,
+  LinkMicMethodMessage,
 } from "../types/types.js";
 
 interface Events {
@@ -36,6 +77,9 @@ interface Events {
   roomRank: (message: RoomRankMessage) => void;
   privilegeScreenChat: (message: PrivilegeScreenChatMessage) => void;
   screenChat: (message: ScreenChatMessage) => void;
+  linkMic: (message: LinkMicMethodMessage) => void;
+  linkMicBattle: (message: LinkMicBattleMessage) => void;
+  linkMicBattleFinish: (message: LinkMicBattleFinishMessage) => void;
   message: (message: Message) => void;
 }
 
@@ -295,6 +339,21 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     this.emit("message", message);
   }
 
+  async handleLinkMicBattle(message: LinkMicBattleMessage) {
+    this.emit("linkMicBattle", message);
+    this.emit("message", message);
+  }
+
+  async handleLinkMicBattleFinish(message: LinkMicBattleFinishMessage) {
+    this.emit("linkMicBattleFinish", message);
+    this.emit("message", message);
+  }
+
+  async handleLinkMicMethod(message: LinkMicMethodMessage) {
+    this.emit("linkMic", message);
+    this.emit("message", message);
+  }
+
   /**
    * 处理其他消息
    */
@@ -327,6 +386,12 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     const PrivilegeScreenChatMessage = protobuf.douyin.PrivilegeScreenChatMessage;
     // @ts-ignore
     const ScreenChatMessage = protobuf.douyin.ScreenChatMessage;
+    // @ts-ignore
+    const LinkMicMethod = protobuf.douyin.LinkMicMethod;
+    // @ts-ignore
+    const LinkMicBattle = protobuf.douyin.LinkMicBattle;
+    // @ts-ignore
+    const LinkMicBattleFinish = protobuf.douyin.LinkMicBattleFinish;
     const wssPackage = PushFrame.decode(data);
 
     // @ts-ignore
@@ -394,6 +459,18 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
         } else if (msg.method === "WebcastScreenChatMessage") {
           const message = ScreenChatMessage.decode(msg.payload);
           this.handleScreenChatMessage(message.toJSON() as ScreenChatMessage);
+        } else if (msg.method === "WebcastLinkMicMethod") {
+          this.handleLinkMicMethod(
+            LinkMicMethod.decode(msg.payload).toJSON() as LinkMicMethodMessage,
+          );
+        } else if (msg.method === "WebcastLinkMicBattleMethod") {
+          this.handleLinkMicBattle(
+            LinkMicBattle.decode(msg.payload).toJSON() as LinkMicBattleMessage,
+          );
+        } else if (msg.method === "WebcastLinkMicBattleFinishMethod") {
+          this.handleLinkMicBattleFinish(
+            LinkMicBattleFinish.decode(msg.payload).toJSON() as LinkMicBattleFinishMessage,
+          );
         } else {
           // WebcastRanklistHourEntranceMessage,WebcastInRoomBannerMessage,WebcastRoomStreamAdaptationMessage
         }

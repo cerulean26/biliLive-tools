@@ -179,6 +179,9 @@ importers:
 
   packages/DouYinDanma:
     dependencies:
+      long:
+        specifier: ^5.2.3
+        version: 5.2.3
       protobufjs:
         specifier: ^7.4.0
         version: 7.4.0

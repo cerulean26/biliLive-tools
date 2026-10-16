@@ -558,6 +558,9 @@ message PayGrade {
   // }
 }
 
+// GradeBuffInfo 仅被上面已注释的 `buff_info` 引用，故一并注释，避免留一个无引用的空消息。
+// message GradeBuffInfo {}
+
 message FansClub {
   FansClubData data = 1;
   map<int32, FansClubData> prefer_data = 2;
@@ -695,4 +698,63 @@ message FansclubMessage {
   int32 type = 2;
   string content = 3;
   User user = 4;
+}
+
+// 连麦/PK 消息
+//
+// 字段按「实际消费方」裁剪，字段号对照权威 proto
+// D:/code/douyinlive-proto/protobuf/new_douyin.proto（Webcast.Im.* / Webcast.Data.*）。
+// 观测到的其它会下发字段（scoreUpdateLogId / scoreVersion / pkResult / multiPkTeamId /
+// avatarThumb / gender 等）当前无消费方故未声明，需要时按上述路径补回并录一场验证。
+// BattleScore（battle_scores）已删除：零消费方，且字段与实时 userScores 完全一致。
+
+message LinkMicMethod {
+  Common common = 1;
+  repeated UserScores user_scores = 17;
+  // 单场 PK 的唯一标识（104）。实测 84/84 下发，值恒等于 BattleSettings.battle_id。
+  // 用途：给 <pk> 分数快照打场次标记 —— 一场直播可打多场 PK，仅凭时间戳无法归属。
+  uint64 battle_id = 104;
+
+  // 实时分数。本消息没有昵称字段，PK 昵称只能从 battle/battleFinish 的 user_infos 取。
+  message UserScores {
+    uint64 score = 1;
+    uint64 user_id = 2;
+    uint64 battle_rank = 8;
+    uint64 multi_pk_team_score = 11;
+    uint64 multi_pk_team_rank = 12;
+  }
+}
+
+// PK开始消息
+message LinkMicBattle {
+  Common common = 1;
+  BattleSettings battle_settings = 2;
+  map<int64, BattleUserInfo> user_infos = 6;
+}
+
+// PK结束消息。用途同样只是取选手昵称与 battle_id（用于判断是否同一场 PK）。
+// user_infos 的字段号是 12（LinkMicBattle 是 6），两者仅复用 BattleUserInfo 结构。
+message LinkMicBattleFinish {
+  Common common = 1;
+  BattleSettings battle_settings = 2;
+  map<int64, BattleUserInfo> user_infos = 12;
+}
+
+// 关联同一场 PK 的开始/结束/实时消息。battle_id 是单场 PK 的唯一标识；
+// channel_id 是开播场次级（同一次开播内多场 PK 共用），故前者优先、后者兜底。
+message BattleSettings {
+  uint64 battle_id = 2;
+  uint64 channel_id = 6;
+}
+
+message BattleUserInfo {
+  BaseUserInfo user = 1;
+
+  message BaseUserInfo {
+    uint64 user_id = 1;
+    string nick_name = 2;
+    // 未舍入的真实标识：user_id 是 uint64，19 位时经 float64 会丢精度，
+    // 查询与作键都应优先用这个（normalizeUserInfosKeys 即如此）。
+    string user_id_str = 5;
+  }
 }
