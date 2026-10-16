@@ -64,4 +64,21 @@ export interface SuperChat<E extends AnyObject = UnknownObject> {
   extra?: E;
 }
 
-export type Message = Comment | GiveGift | SuperChat | Guard;
+export interface PkScore {
+  type: "pk_score";
+  timestamp: number;
+  /**
+   * 单场 PK 标识。一场直播可打多场 PK，快照只凭时间戳无法归属；
+   * 由 `LinkMicMethod.battle_id` 带出。XSL 按它分组渲染，避免多场 PK 串成一张表。
+   */
+  battleId?: string;
+  players: {
+    uid: string;
+    score: string;
+    rank?: string;
+    teamScore?: string;
+    teamRank?: string;
+  }[];
+}
+
+export type Message = Comment | GiveGift | SuperChat | Guard | PkScore;

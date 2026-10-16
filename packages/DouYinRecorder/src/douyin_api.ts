@@ -866,3 +866,167 @@ interface StreamData {
     }
   >;
 }
+
+/**
+ * 获取 ttwid（字节匿名设备标识）。进程内缓存 —— 注册值每次不同但可长期复用，不必每条消息重取。
+ * 实测：仅携带 ttwid 即可查询昵称，无需登录 Cookie。
+ */
+let ttwidCache: Promise<string> | null = null;
+
+async function getTtwid(): Promise<string> {
+  if (!ttwidCache) {
+    ttwidCache = (async () => {
+      try {
+        // 用 requester 而非裸 axios：统一禁用代理（裸 axios 会读环境变量代理）
+        const res = await requester.post(
+          "https://ttwid.bytedance.com/ttwid/union/register/",
+          JSON.stringify({
+            region: "cn",
+            aid: 1128,
+            needFid: false,
+            service: "www.douyin.com",
+            migrate_info: { ticket: "", source: "node" },
+            cbUrlProtocol: "https",
+            union: true,
+          }),
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
+            },
+            // 注册实测 ~100ms；压到 2s 避免卡住的注册拖住整批查询
+            timeout: 2000,
+          },
+        );
+        // 从响应头提取 ttwid Cookie
+        const setCookie = res.headers["set-cookie"];
+        if (!setCookie) return "";
+        const ttwidCookie = (Array.isArray(setCookie) ? setCookie : [setCookie]).find((c: string) =>
+          c.startsWith("ttwid="),
+        );
+        if (!ttwidCookie) return "";
+        return "ttwid=" + (ttwidCookie.match(/ttwid=([^;]+)/)?.[1] || "");
+      } catch (e) {
+        // 只打 message：axios 异常对象带 config/headers，整对象打日志有泄漏面
+        console.warn("[getTtwid] ttwid 注册失败:", (e as Error)?.message ?? e);
+        return "";
+      }
+    })();
+  }
+  const current = ttwidCache;
+  const v = await current;
+  // 注册失败不缓存（否则一次失败会毒化之后全部查询）；但只清「我用的那个」——
+  // 期间若已被别的调用者清空并重建，无此比较会**用旧结果清掉新缓存**（并发 CAS）
+  if (!v && ttwidCache === current) ttwidCache = null;
+  return v;
+}
+
+const BASE_PARAMS: Record<string, string> = {
+  device_platform: "webapp",
+  aid: "6383",
+  channel: "channel_pc_web",
+  publish_video_strategy_type: "2",
+  update_version_code: "170400",
+  pc_client_version: "2.4.0",
+  personal_center_strategy: "1",
+  version_code: "170400",
+  version_name: "17.4.0",
+  cookie_enabled: "true",
+  screen_width: "1536",
+  screen_height: "864",
+  browser_language: "zh-CN",
+  browser_platform: "Win32",
+  browser_name: "Chrome",
+  browser_version: "90.0.4430.212",
+  browser_online: "true",
+  engine_name: "Blink",
+  engine_version: "90.0.4430.212",
+  os_name: "Windows",
+  os_version: "10",
+  cpu_core_num: "12",
+  device_memory: "8",
+  platform: "PC",
+};
+
+/**
+ * 昵称查询结果（判别联合）。
+ *
+ * 判别字段用 `status` 字面量而非布尔：布尔字段在 `else if` 里无法收窄类型。
+ * - `found`：查到昵称
+ * - `not_found`：服务端明确回复「查无此人」（`status_code` 3170 / 2，均有实测）
+ * - `unavailable`：本次未取到（ttwid 拿不到 / 超时 / HTTP 错误 / 响应体无法识别）
+ *
+ * ⚠️ `not_found` 与 `unavailable` **语义不同、后果一致**：两者都让调用方本会话不再查该 uid，
+ * 但只有 `not_found` 是"该 uid 不存在"的结论。它是不可逆的，故只认实测过的白名单码。
+ */
+export type GetUserNicknameResult =
+  | { status: "found"; nickname: string }
+  | { status: "not_found" }
+  | { status: "unavailable" };
+
+/** 判 `not_found` 的 status_code 白名单 —— 只认实测确认过的信号（3170 查无此人 / 2 uid 不合法） */
+const CONFIRMED_MISSING = new Set([3170, 2]);
+
+/**
+ * 依据 profile 接口的**响应体**判定结果（纯函数，便于单测 / 变异验证）。
+ *
+ * 实测形态：成功 `{status_code:0, user:{…,nickname}}`；查无此人 `{status_code:3170, user:{…}}`；
+ * uid 不合法 `{status_code:2, user:{}}`；ttwid 失效则**完全空响应**（axios 解析为 `""`）。
+ *
+ * ⚠️ 只有白名单码判 `not_found`（不可逆）；其余一律 `unavailable` —— 宁可漏判，也不把 uid 判死。
+ */
+export function classifyProfileResponse(data: unknown): GetUserNicknameResult {
+  const body = (data ?? {}) as { status_code?: number; user?: { nickname?: unknown } | null };
+  const nickname = body.user?.nickname;
+  if (typeof nickname === "string" && nickname.length > 0) {
+    return { status: "found", nickname };
+  }
+  if (typeof body.status_code === "number" && CONFIRMED_MISSING.has(body.status_code)) {
+    return { status: "not_found" };
+  }
+  return { status: "unavailable" };
+}
+
+/**
+ * 通过数字 UID 查询抖音用户昵称。
+ *
+ * 实测：只带 ttwid 即可查询，**无需登录 Cookie**，故不发送登录凭据 ——
+ * 既减小凭据使用面，也避免 `auth` 中可能存在的 `ttwid=` 造成重复。
+ *
+ * **单次请求，不做重试**：调用方对本函数的失败一律记作"本次未取到"，之后不再自动重查 ——
+ * 持续故障下反复打接口会触发风控，而封 IP 是不可逆的。需要重查时重启进程即可。
+ *
+ * @param uid 用户数字 ID
+ */
+export async function getUserNickname(uid: string): Promise<GetUserNicknameResult> {
+  const ua =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
+
+  try {
+    const ttwid = await getTtwid();
+    if (!ttwid) return { status: "unavailable" };
+
+    const params = new URLSearchParams({ ...BASE_PARAMS, user_id: uid });
+    const url = `https://www.douyin.com/aweme/v1/web/user/profile/other/?${params}`;
+
+    const res = await requester.get(url, {
+      headers: {
+        "User-Agent": ua,
+        Referer: "https://www.douyin.com/",
+        Cookie: ttwid,
+      },
+      // 必须 ≤ 整批预算（PK_NICKNAME_FLUSH_WAIT_TIMEOUT=3s）：超出的请求本次 flush 注定拿不到，
+      // 还会拖住同一并发块里的其它 uid（块内是整体 await）
+      timeout: 2500,
+    });
+
+    return classifyProfileResponse(res.data);
+  } catch (err: any) {
+    // HTTP 错误码从未实测出现过（实测六次请求全是 200 + 业务码），故只如实记录、不做分类
+    console.warn(
+      `[getUserNickname] 查询 UID ${uid} 昵称失败 (status=${err?.response?.status}): ${err?.message || err}`,
+    );
+    return { status: "unavailable" };
+  }
+}

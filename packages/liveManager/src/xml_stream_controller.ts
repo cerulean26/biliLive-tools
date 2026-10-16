@@ -9,7 +9,7 @@ import { pick } from "lodash-es";
 import { Message } from "./common.js";
 
 const METADATA_PLACEHOLDER = "<!--METADATA_PLACEHOLDER-->";
-const XML_FILE_HEADER = `<?xml version="1.0" encoding="utf-8"?>\n<?xml-stylesheet type="text/xsl" href="#s"?>\n<i>\n${METADATA_PLACEHOLDER}\n<RecorderXmlStyle><z:stylesheet version="1.0" id="s" xml:id="s" xmlns:z="http://www.w3.org/1999/XSL/Transform"><z:output method="html"/><z:template match="/"><html><meta name="viewport" content="width=device-width"/><title>弹幕文件 <z:value-of select="/i/metadata/user_name/text()"/></title><style>body{margin:0}h1,h2,p,table{margin-left:5px}table{border-spacing:0}td,th{border:1px solid grey;padding:1px 5px}th{position:sticky;top:0;background:#4098de}tr:hover{background:#d9f4ff}div{overflow:auto;max-height:80vh;max-width:100vw;width:fit-content}</style><h1>弹幕XML文件</h1><p>本文件不支持在 IE 浏览器里预览，请使用 Chrome Firefox Edge 等浏览器。</p><p>文件用法参考文档 <a href="https://rec.danmuji.org/user/danmaku/">https://rec.danmuji.org/user/danmaku/</a></p><table><tr><td>房间号</td><td><z:value-of select="/i/metadata/room_id/text()"/></td></tr><tr><td>主播名</td><td><z:value-of select="/i/metadata/user_name/text()"/></td></tr><tr><td><a href="#d">弹幕</a></td><td>共<z:value-of select="count(/i/d)"/>条记录</td></tr><tr><td><a href="#guard">上船</a></td><td>共<z:value-of select="count(/i/guard)"/>条记录</td></tr><tr><td><a href="#sc">SC</a></td><td>共<z:value-of select="count(/i/sc)"/>条记录</td></tr><tr><td><a href="#gift">礼物</a></td><td>共<z:value-of select="count(/i/gift)"/>条记录</td></tr></table><h2 id="d">弹幕</h2><div id="dm"><table><tr><th>用户名</th><th>出现时间</th><th>用户ID</th><th>弹幕</th><th>等级</th><th>粉丝团</th><th>参数</th></tr><z:for-each select="/i/d"><tr><td><z:value-of select="@user"/></td><td></td><td></td><td><z:value-of select="."/></td><td><z:value-of select="@level"/></td><td><z:value-of select="@club_level"/></td><td><z:value-of select="@p"/></td></tr></z:for-each></table></div><script>Array.from(document.querySelectorAll('#dm tr')).slice(1).map(t=>t.querySelectorAll('td')).forEach(t=>{let p=t[6].textContent.split(','),a=p[0];t[1].textContent=\`\u0024{(Math.floor(a/60/60)+'').padStart(2,0)}:\u0024{(Math.floor(a/60%60)+'').padStart(2,0)}:\u0024{(a%60).toFixed(3).padStart(6,0)}\`;t[2].innerHTML=\`&lt;a target=_blank rel="nofollow noreferrer" "&gt;\u0024{p[6]}&lt;/a&gt;\`})</script><h2 id="guard">舰长购买</h2><div><table><tr><th>用户名</th><th>用户ID</th><th>舰长等级</th><th>购买数量</th><th>出现时间</th></tr><z:for-each select="/i/guard"><tr><td><z:value-of select="@user"/></td><td><a rel="nofollow noreferrer"><z:attribute name="href"><z:text></z:text><z:value-of select="@uid" /></z:attribute><z:value-of select="@uid"/></a></td><td><z:value-of select="@level"/></td><td><z:value-of select="@count"/></td><td><z:value-of select="@ts"/></td></tr></z:for-each></table></div><h2 id="sc">SuperChat 醒目留言</h2><div><table><tr><th>用户名</th><th>用户ID</th><th>内容</th><th>显示时长</th><th>价格</th><th>出现时间</th></tr><z:for-each select="/i/sc"><tr><td><z:value-of select="@user"/></td><td><a rel="nofollow noreferrer"><z:attribute name="href"><z:text></z:text><z:value-of select="@uid" /></z:attribute><z:value-of select="@uid"/></a></td><td><z:value-of select="."/></td><td><z:value-of select="@time"/></td><td><z:value-of select="@price"/></td><td><z:value-of select="@ts"/></td></tr></z:for-each></table></div><h2 id="gift">礼物</h2><div><table><tr><th>用户名</th><th>用户ID</th><th>礼物名</th><th>礼物数量</th><th>出现时间</th><th>等级</th><th>粉丝团</th></tr><z:for-each select="/i/gift"><tr><td><z:value-of select="@user"/></td><td><span rel="nofollow noreferrer"><z:attribute name="href"></z:attribute><z:value-of select="@uid"/></span></td><td><z:value-of select="@giftname"/></td><td><z:value-of select="@giftcount"/></td><td><z:value-of select="@ts"/></td><td><z:value-of select="@level"/></td><td><z:value-of select="@club_level"/></td></tr></z:for-each></table></div></html></z:template></z:stylesheet></RecorderXmlStyle>\n`;
+const XML_FILE_HEADER = `<?xml version="1.0" encoding="utf-8"?>\n<?xml-stylesheet type="text/xsl" href="#s"?>\n<i>\n${METADATA_PLACEHOLDER}\n<RecorderXmlStyle><z:stylesheet version="1.0" id="s" xml:id="s" xmlns:z="http://www.w3.org/1999/XSL/Transform"><z:output method="html"/><z:key name="pkByBattle" match="pk" use="@battle_id"/><z:template match="/"><html><meta name="viewport" content="width=device-width"/><title>弹幕文件 <z:value-of select="/i/metadata/user_name/text()"/></title><style>body{margin:0}h1,h2,p,table{margin-left:5px}table{border-spacing:0}td,th{border:1px solid grey;padding:1px 5px}th{position:sticky;top:0;background:#4098de}summary{cursor:pointer;font-weight:bold}tr:hover{background:#d9f4ff}div{overflow:auto;max-height:80vh;max-width:100vw;width:fit-content}</style><h1>弹幕XML文件</h1><p>本文件不支持在 IE 浏览器里预览，请使用 Chrome Firefox Edge 等浏览器。</p><p>文件用法参考文档 <a href="https://rec.danmuji.org/user/danmaku/">https://rec.danmuji.org/user/danmaku/</a></p><table><tr><td>房间号</td><td><z:value-of select="/i/metadata/room_id/text()"/></td></tr><tr><td>主播名</td><td><z:value-of select="/i/metadata/user_name/text()"/></td></tr><tr><td><a href="#d">弹幕</a></td><td>共<z:value-of select="count(/i/d)"/>条记录</td></tr><tr><td><a href="#guard">上船</a></td><td>共<z:value-of select="count(/i/guard)"/>条记录</td></tr><tr><td><a href="#sc">SC</a></td><td>共<z:value-of select="count(/i/sc)"/>条记录</td></tr><tr><td><a href="#gift">礼物</a></td><td>共<z:value-of select="count(/i/gift)"/>条记录</td></tr><tr><td><a href="#pk">PK</a></td><td>共<z:value-of select="count(/i/pk)"/>条记录</td></tr></table><h2 id="d">弹幕</h2><div id="dm"><table><tr><th>用户名</th><th>出现时间</th><th>用户ID</th><th>弹幕</th><th>等级</th><th>粉丝团</th><th>参数</th></tr><z:for-each select="/i/d"><tr><td><z:value-of select="@user"/></td><td></td><td></td><td><z:value-of select="."/></td><td><z:value-of select="@level"/></td><td><z:value-of select="@club_level"/></td><td><z:value-of select="@p"/></td></tr></z:for-each></table></div><script>Array.from(document.querySelectorAll('#dm tr')).slice(1).map(t=>t.querySelectorAll('td')).forEach(t=>{let p=t[6].textContent.split(','),a=p[0];t[1].textContent=\`\u0024{(Math.floor(a/60/60)+'').padStart(2,0)}:\u0024{(Math.floor(a/60%60)+'').padStart(2,0)}:\u0024{(a%60).toFixed(3).padStart(6,0)}\`;t[2].innerHTML=\`&lt;a target=_blank rel="nofollow noreferrer" "&gt;\u0024{p[6]}&lt;/a&gt;\`})</script><h2 id="guard">舰长购买</h2><div><table><tr><th>用户名</th><th>用户ID</th><th>舰长等级</th><th>购买数量</th><th>出现时间</th></tr><z:for-each select="/i/guard"><tr><td><z:value-of select="@user"/></td><td><a rel="nofollow noreferrer"><z:attribute name="href"><z:text></z:text><z:value-of select="@uid" /></z:attribute><z:value-of select="@uid"/></a></td><td><z:value-of select="@level"/></td><td><z:value-of select="@count"/></td><td><z:value-of select="@ts"/></td></tr></z:for-each></table></div><h2 id="sc">SuperChat 醒目留言</h2><div><table><tr><th>用户名</th><th>用户ID</th><th>内容</th><th>显示时长</th><th>价格</th><th>出现时间</th></tr><z:for-each select="/i/sc"><tr><td><z:value-of select="@user"/></td><td><a rel="nofollow noreferrer"><z:attribute name="href"><z:text></z:text><z:value-of select="@uid" /></z:attribute><z:value-of select="@uid"/></a></td><td><z:value-of select="."/></td><td><z:value-of select="@time"/></td><td><z:value-of select="@price"/></td><td><z:value-of select="@ts"/></td></tr></z:for-each></table></div><h2 id="gift">礼物</h2><div><table><tr><th>用户名</th><th>用户ID</th><th>礼物名</th><th>礼物数量</th><th>出现时间</th><th>等级</th><th>粉丝团</th></tr><z:for-each select="/i/gift"><tr><td><z:value-of select="@user"/></td><td><span rel="nofollow noreferrer"><z:attribute name="href"></z:attribute><z:value-of select="@uid"/></span></td><td><z:value-of select="@giftname"/></td><td><z:value-of select="@giftcount"/></td><td><z:value-of select="@ts"/></td><td><z:value-of select="@level"/></td><td><z:value-of select="@club_level"/></td></tr></z:for-each></table></div><h2 id="pk">PK分数</h2><z:for-each select="/i/pk[generate-id()=generate-id(key('pkByBattle',@battle_id)[1])]"><details><summary>PK 场次 <z:value-of select="position()"/><z:if test="@battle_id"><z:text>（battle_id </z:text><z:value-of select="@battle_id"/><z:text>）</z:text></z:if></summary><div><table><tr><th>PK时间</th><th>主播</th><th>主播ID</th><th>分数</th><th>排名</th><z:if test="player/@team_rank"><th>团队分数</th><th>团队排名</th></z:if></tr><z:for-each select="key('pkByBattle',@battle_id)"><z:for-each select="player"><z:variable name="pkUid" select="@uid"/><tr><td><z:if test="position()=1"><z:value-of select="../@ts"/></z:if></td><td><z:choose><z:when test="/i/pk_users/user[@uid=$pkUid]"><z:value-of select="/i/pk_users/user[@uid=$pkUid]/@nick"/></z:when><z:otherwise><z:value-of select="@uid"/></z:otherwise></z:choose></td><td><z:value-of select="@uid"/></td><td><z:value-of select="@score"/></td><td><z:value-of select="@rank"/></td><z:if test="../player/@team_rank"><td><z:value-of select="@team_score"/></td><td><z:value-of select="@team_rank"/></td></z:if></tr></z:for-each></z:for-each></table></div></details></z:for-each><h2 id="pk_users">PK选手</h2><div id="pk_users_div"><table><tr><th>主播ID</th><th>主播昵称</th></tr><z:for-each select="/i/pk_users/user"><tr><td><z:value-of select="@uid"/></td><td><z:value-of select="@nick"/></td></tr></z:for-each></table></div></html></z:template></z:stylesheet></RecorderXmlStyle>\n`;
 const DANMA_STATS_INTERVAL = 10;
 
 export interface DanmaStatsPayload {
@@ -47,6 +47,38 @@ export interface XmlStreamController {
   /** 设计上来说，外部程序不应该能直接修改 data 上的东西 */
   readonly data: XmlStreamData;
   addMessage: (message: Message) => void;
+  /**
+   * 登记 PK 选手的真实昵称，写入录制结束时追加到 XML 末尾的映射表。
+   *
+   * **这张映射表是 PK 昵称的唯一权威来源**：`<player>` 节点只输出 `@uid`、不含昵称
+   * （PK 分数消息本身也不带昵称），而 XML 单向追加、无法回改，所以 XSL 渲染时统一
+   * 查这张表翻译（查不到才退回显示 uid）。
+   *
+   * 调用方：录制器在拿到 **battle 来源**（`linkMicBattle` / `linkMicBattleFinish` 的
+   * `userInfos`）的昵称时调用（见 `DouYinRecorder` 的 `warmPkNicknamesFromUserInfos`）。
+   * `addMessage` 不做任何隐式登记。
+   *
+   * ⚠️ 注意：`flush` 的**批量补齐**路径**不走本方法** —— 那时 `hasCompleted` 已置位，
+   * 本方法会直接返回 0；补齐结果由 `flush` 内部直接写入 `pkUserNicknames`
+   * （见 `setNicknameProvider`）。
+   *
+   * @returns 该昵称是否是新信息（已登记过相同昵称返回 0）
+   */
+  registerPkNickname: (uid: string, nickname: string) => number;
+  /**
+   * 注入「flush 前批量补齐昵称」的提供者（可选）。
+   *
+   * 背景：PK 分数消息**只带 uid 与分数、不带昵称**，而录制期**不发起**昵称查询
+   * （批式改造）—— 只把出现过的 uid 收集到 `pkUidsSeen`。昵称查询集中到 `flush`
+   * 落盘映射表**之前**由本回调一次完成，好处是：有 battle 的场次完全不发请求，
+   * 且查询结果必定早于快照，不会被 `hasCompleted` 丢掉。
+   *
+   * 注入后，`flush` 会在写映射表**之前**调用它并等待，用结果补齐快照。
+   * 未注入时行为完全不变（映射表里没有昵称的选手退化为显示 uid）。
+   *
+   * @param fn 入参为本场出现过、且尚无昵称的 uid；返回 uid → 昵称（仅含已拿到的）
+   */
+  setNicknameProvider: (fn: ((uids: string[]) => Promise<Map<string, string>>) | null) => void;
   setMeta: (meta: Partial<XmlStreamData["meta"]>) => Promise<void>;
   flush: () => Promise<void>;
   getStats: () => XmlStreamStats;
@@ -91,6 +123,26 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
       },
     };
   };
+  /**
+   * 本场 PK 出现过的选手：uid -> 昵称。
+   *
+   * 抖音的 PK 分数消息（`userScores`）不带昵称，昵称要靠 battle 消息或接口另行获取，
+   * 而这两者都不保证早于分数消息到达 —— 于是 `<player nick>` 里会留下 uid 占位值。
+   *
+   * 由于 XML 是单向追加（`appendFile`），已落盘的 uid 占位无法回改。这里改为在录制
+   * 结束、闭合标签之前**追加一张映射表**，由 XSL 在渲染时翻译：
+   * 纯追加、不触碰已写内容，因此崩溃中断最多丢失表尾，不会损坏原有数据。
+   */
+  const pkUserNicknames = new Map<string, string>();
+  /**
+   * 本场出现过的 PK 选手 uid（含尚未拿到昵称的）。
+   *
+   * 用于 `flush` 前向 `nicknameProvider` 补齐昵称 —— 这些 uid 可能因为「查询在途」
+   * 而没能进入 `pkUserNicknames`（见 `flush` 内的补齐逻辑）。
+   */
+  const pkUidsSeen = new Set<string>();
+  /** flush 前补齐昵称的提供者（由录制器注入，见 `setNicknameProvider`） */
+  let nicknameProvider: ((uids: string[]) => Promise<Map<string, string>>) | null = null;
 
   const getStats = (): XmlStreamStats => ({
     danmaNum,
@@ -111,6 +163,7 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
   };
 
   const trackInteractedUser = (message: Message) => {
+    if (message.type === "pk_score") return;
     const userName = message.sender?.name?.trim();
     if (!userName) return;
     interactedUsers.add(userName);
@@ -162,8 +215,35 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
     } else if (message.type === "guard") {
       guardNum += 1;
     }
+    // PK 分数的选手昵称**不在这里登记**：消息体只带 uid / 分数，
+    // 昵称一律由录制器在拿到后调用 `registerPkNickname` 显式登记
+    // （来源：battle 消息 / 接口查询 / 昵称缓存命中）。
+    // 但这里要记下「本场出现过哪些 uid」，供 flush 前补齐昵称用。
+    if (message.type === "pk_score") {
+      for (const player of message.players ?? []) {
+        if (player?.uid) pkUidsSeen.add(player.uid);
+      }
+    }
     trackInteractedUser(message);
     data.pendingMessages.push(message);
+  };
+
+  /**
+   * 登记一个 PK 选手的真实昵称（幂等）。
+   *
+   * 由录制器在拿到昵称后调用，`flush` 统一追加为 XML 末尾的映射表。
+   * **这是 PK 昵称的唯一权威来源** —— XML 单向追加、无法回改，
+   * XSL 渲染时统一查这张表翻译。
+   */
+  const registerPkNickname: XmlStreamController["registerPkNickname"] = (uid, nickname) => {
+    if (hasCompleted || !uid || !nickname) return 0;
+    const previous = pkUserNicknames.get(uid);
+    pkUserNicknames.set(uid, nickname);
+    return previous === nickname ? 0 : 1;
+  };
+
+  const setNicknameProvider: XmlStreamController["setNicknameProvider"] = (fn) => {
+    nicknameProvider = fn;
   };
 
   const setMeta: XmlStreamController["setMeta"] = async (meta) => {
@@ -181,22 +261,62 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
 
     try {
       await writeToFile(true);
-      await appendToXmlFile(savePath, "</i>");
     } catch (error) {
       console.error("完成XML文件写入失败:", error);
-    } finally {
-      // 清理内存
-      data.pendingMessages = [];
-      interactedUsers.clear();
-      danmaNum = 0;
-      scNum = 0;
-      guardNum = 0;
     }
+
+    // flush 前补齐昵称：让录制器等待其「在途的昵称查询」并回读缓存结果。
+    //
+    // ⚠️ 必须**直接写 `pkUserNicknames`**，不能走 `registerPkNickname` —— 后者开头是
+    //    `if (hasCompleted) return 0`，而 `hasCompleted` 在本函数第一行已置位，
+    //    走那条路会被整体丢弃（这正是本改动要修的竞态）。此处与 `</i>` 各自独立 try，
+    //    补齐失败绝不能影响映射表与闭合标签落盘。
+    if (nicknameProvider && pkUidsSeen.size > 0) {
+      try {
+        const missing = [...pkUidsSeen].filter((uid) => !pkUserNicknames.has(uid));
+        if (missing.length > 0) {
+          const resolved = await nicknameProvider(missing);
+          for (const [uid, nickname] of resolved) {
+            // 已有值不覆盖：`pkUserNicknames` 里的值同源且更权威（如 battle）
+            if (nickname && !pkUserNicknames.has(uid)) pkUserNicknames.set(uid, nickname);
+          }
+        }
+      } catch (error) {
+        console.error("flush 前补齐 PK 昵称失败:", error);
+      }
+    }
+
+    // 映射表必须在闭合标签之前追加，且是纯追加 —— 不修改任何已落盘内容。
+    // ⚠️ 与闭合标签**各自独立 try**：映射表写入失败绝不能阻止 `</i>` 落盘，
+    // 否则整份 XML 缺闭合标签、XSL 预览全废（且 hasCompleted 已置位、无法重试）。
+    try {
+      await appendToXmlFile(savePath, buildPkUserMapXml(pkUserNicknames));
+    } catch (error) {
+      console.error("PK 昵称映射表写入失败:", error);
+    }
+
+    try {
+      await appendToXmlFile(savePath, "</i>");
+    } catch (error) {
+      console.error("XML 闭合标签写入失败:", error);
+    }
+
+    // 清理内存
+    data.pendingMessages = [];
+    interactedUsers.clear();
+    pkUserNicknames.clear();
+    pkUidsSeen.clear();
+    nicknameProvider = null;
+    danmaNum = 0;
+    scNum = 0;
+    guardNum = 0;
   };
 
   return {
     data,
     addMessage,
+    registerPkNickname,
+    setNicknameProvider,
     setMeta,
     flush,
     getStats,
@@ -245,7 +365,15 @@ function generateXmlContent(metadata: XmlStreamData["meta"], messages: Message[]
         attrs["@@uid"],
         attrs["@@weight"],
       ].join(",");
-      return pick(attrs, ["@@p", "#text", "@@user", "@@uid", "@@timestamp", "@@level", "@@club_level"]);
+      return pick(attrs, [
+        "@@p",
+        "#text",
+        "@@user",
+        "@@uid",
+        "@@timestamp",
+        "@@level",
+        "@@club_level",
+      ]);
     });
 
   const gifts = messages
@@ -295,15 +423,68 @@ function generateXmlContent(metadata: XmlStreamData["meta"], messages: Message[]
       };
     });
 
+  const pkScores = messages
+    .filter((item) => item.type === "pk_score")
+    .map((ele) => {
+      // 与礼物/超赞等保持一致：ts 为距录制开始的相对秒数，便于表格阅读与排序
+      const progress = Math.max((ele.timestamp - metadata.recordStartTimestamp) / 1000, 0);
+      return {
+        "@@timestamp": String(ele.timestamp),
+        "@@ts": progress,
+        // 单场 PK 标识。一场直播可打多场 PK，缺了它这些快照只能靠时间戳猜归属，
+        // XSL 会把多场 PK 的比赛串成同一张表（见模板里按 battle_id 分组的那段）。
+        // 缺省时不写该属性（与 player 的 team_* 处理一致）。
+        ...(ele.battleId ? { "@@battle_id": ele.battleId } : {}),
+        // 刻意不输出昵称：PK 分数消息本身不带昵称，`@nick` 只会是 uid 占位。
+        // 昵称统一由末尾的 <pk_users> 映射表承载，XSL 渲染时按 @uid 查表翻译。
+        player: ele.players.map((p) => ({
+          "@@uid": String(p.uid),
+          "@@score": String(p.score ?? "0"),
+          "@@rank": String(p.rank ?? ""),
+          // 仅在团队 PK 时输出 team_* 属性：非团队 PK 的 userScores 不含 team 字段，
+          // 原写法会为每个 <player> 写出 team_score="" team_rank=""（约占文件 10-13%）。
+          // 缺省时 XSL 会整列隐藏（模板里对应该列头的 z:if 判断），不会留下空列。
+          ...(p.teamScore ? { "@@team_score": p.teamScore } : {}),
+          ...(p.teamRank ? { "@@team_rank": p.teamRank } : {}),
+        })),
+      };
+    });
+
   // 构建这一批消息的XML片段
   const fragment = {
     d: comments,
     gift: gifts,
     sc: superChats,
     guard: guardGift,
+    pk: pkScores,
   };
 
   return builder.build(fragment);
+}
+
+/**
+ * 序列化 PK 选手 uid -> 昵称 的映射表。
+ *
+ * 只输出真正拿到昵称的条目（`nick` 非空且 `nick !== uid`），没有昵称的选手（接口查不到、
+ * battle 未送达）不写入，XSL 渲染时会退回显示 uid 本身。
+ *
+ * 手工拼接而非走 XMLBuilder：这张表位于文件末尾、需要与既有格式完全一致的
+ * 缩进风格，且条目数很少（一场 PK 通常 2-8 人）。
+ */
+function buildPkUserMapXml(pkUserNicknames: Map<string, string>): string {
+  const entries = [...pkUserNicknames.entries()].filter(([uid, nick]) => nick && nick !== uid);
+  if (entries.length === 0) return "";
+
+  const builder = new XMLBuilder({
+    ignoreAttributes: false,
+    attributeNamePrefix: "@@",
+    format: true,
+  });
+  return builder.build({
+    pk_users: {
+      user: entries.map(([uid, nick]) => ({ "@@uid": uid, "@@nick": nick })),
+    },
+  });
 }
 
 /**

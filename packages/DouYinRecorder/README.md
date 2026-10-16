@@ -93,6 +93,34 @@ const { id } = await provider.resolveChannelInfoFromURL(url);
 | 负载均衡         | 使用负载均衡算法来分摊防止风控                         |
 | 随机             | 从几个接口里挑一个                                     |
 
+## 调试
+
+### PK 原始消息落盘
+
+抖音的 PK 消息**不含昵称**（昵称要靠 `linkMicBattle` / `linkMicBattleFinish` 的 `userInfos` 补齐，
+或按 uid 反查接口），排查「某 uid 全程显示为 uid」这类问题时需要原始报文。
+
+开启后，每条 PK 原始消息会按行写入 JSONL，与视频同目录：
+
+```
+<视频文件名>_pk_raw.jsonl
+```
+
+每行形如 `{"tag":"linkMic","at":<毫秒时间戳>,"payload":{…}}`；`tag` 为
+`linkMic` / `linkMicBattle` / `linkMicBattleFinish`，便于用 `grep` / `jq` 过滤。
+
+**默认关闭** —— 该文件是排查用的临时产物（单场约 160 KB，与 XML 同量级），
+关闭时不会创建任何文件。需要时设环境变量后启动：
+
+| shell      | 命令                                   |
+| ---------- | -------------------------------------- |
+| Nushell    | `$env.BILILIVE_TOOLS_PK_RAW_LOG = "1"` |
+| PowerShell | `$env:BILILIVE_TOOLS_PK_RAW_LOG = "1"` |
+| cmd        | `set BILILIVE_TOOLS_PK_RAW_LOG=1`      |
+| bash       | `export BILILIVE_TOOLS_PK_RAW_LOG=1`   |
+
+环境变量在**每次创建写入器时读取**，因此同一进程内改动对后续录制会话生效。
+
 # 协议
 
 与原项目保存一致为 LGPL
