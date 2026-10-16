@@ -4,7 +4,7 @@
       <tr>
         <th v-if="isColumnVisible('channelId')">房间号</th>
         <th v-if="isColumnVisible('owner')">主播名</th>
-        <th v-if="isColumnVisible('remark')">备注</th>
+        <th v-if="isColumnVisible('remark')">备注名</th>
         <th v-if="isColumnVisible('roomTitle')">标题</th>
         <th v-if="isColumnVisible('living')" @click="handleSort('living')" class="sortable-header">
           直播状态

@@ -283,6 +283,7 @@ router.post("/formatPartTitle", async (ctx) => {
     data.options ?? {
       title: "标题",
       username: "主播名",
+      remarks: "",
       time: new Date().toISOString(),
       roomId: 123456,
       filename: "文件名",

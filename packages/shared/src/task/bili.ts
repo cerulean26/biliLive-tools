@@ -35,6 +35,7 @@ type ClientInstance = InstanceType<typeof Client>;
 type ParsedUploadFileMeta = Awaited<ReturnType<typeof pasrseMetadata>>;
 type UploadFileMeta = ParsedUploadFileMeta & {
   index?: number;
+  remarks?: string;
 };
 type UploadFileItem = {
   path: string;
@@ -50,6 +51,7 @@ type NormalizedUploadFileItem = {
 type UploadFormatContext = {
   title: string;
   username: string;
+  remarks?: string;
   time: string;
   roomId: string | number;
   filename: string;
@@ -605,6 +607,7 @@ function getUploadFormatContext(
   return {
     title: meta.title,
     username: meta.username,
+    remarks: meta.remarks,
     time: new Date(meta.startTimestamp * 1000).toISOString(),
     roomId: meta.roomId,
     filename: filename,

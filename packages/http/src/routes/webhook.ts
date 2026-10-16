@@ -279,6 +279,7 @@ router.post("/webhook/custom", async (ctx) => {
       time: event.time,
       title: event.title,
       username: event.username,
+      remarks: event.remarks,
       coverPath: event?.coverPath,
       danmuPath: event?.danmuPath,
       platform: event?.platform || "custom",

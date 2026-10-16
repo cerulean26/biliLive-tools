@@ -8,6 +8,10 @@ export const uploadTitleTemplate = [
     label: "主播名",
   },
   {
+    value: "{{remarks}}",
+    label: "备注名",
+  },
+  {
     value: "{{roomId}}",
     label: "房间号",
   },

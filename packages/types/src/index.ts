@@ -90,6 +90,7 @@ export type CommonPreset<T> = {
 export interface PartTitleFormatOptions {
   title: string;
   username: string;
+  remarks?: string;
   time: string;
   roomId: string | number;
   filename: string;

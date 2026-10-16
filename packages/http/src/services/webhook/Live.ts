@@ -184,6 +184,8 @@ export class Live {
   title: string;
   // 主播名
   username: string;
+  // 备注名
+  remarks?: string;
   aid?: number;
   // 非弹幕版aid
   rawAid?: number;
@@ -196,6 +198,7 @@ export class Live {
     roomId: string;
     title: string;
     username: string;
+    remarks?: string;
     startTime: number;
     aid?: number;
     rawAid?: number;
@@ -207,6 +210,7 @@ export class Live {
     this.startTime = options.startTime;
     this.title = options.title;
     this.username = options.username;
+    this.remarks = options.remarks;
     this.aid = options.aid;
     this.rawAid = options.rawAid;
     this.parts = [];
@@ -393,6 +397,7 @@ export class Live {
     roomId: string;
     title: string;
     username: string;
+    remarks?: string;
     aid?: number;
     rawAid?: number;
     parts: PartInterface[];
@@ -405,6 +410,7 @@ export class Live {
       roomId: this.roomId,
       title: this.title,
       username: this.username,
+      remarks: this.remarks,
       aid: this.aid,
       rawAid: this.rawAid,
       parts: this.parts.map((part) => part.toJSON()),
