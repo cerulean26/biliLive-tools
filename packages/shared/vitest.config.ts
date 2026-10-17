@@ -13,6 +13,9 @@ export default defineConfig({
     },
     globalSetup: globalSetupPath,
     setupFiles: [setupFilesPath],
+    // 本地全量并行跑 test/recorder/index.test.ts 时，beforeAll 的动态 import 会超过默认 10s（本机 IO 慢）
+    // ⇒ 放宽到 60s，避免本地误报；上游 CI 无此问题
+    hookTimeout: 60000,
     globals: true,
   },
 });
