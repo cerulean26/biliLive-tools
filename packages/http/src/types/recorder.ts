@@ -104,6 +104,7 @@ export type UpdateRecorderArgs = Pick<
   | "line"
   | "disableProvideCommentsWhenRecording"
   | "saveGiftDanma"
+  | "savePk"
   | "saveSCDanma"
   | "saveDanmaStats2DB"
   | "segment"

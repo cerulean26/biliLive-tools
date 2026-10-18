@@ -903,7 +903,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     // （中途接入时结束事件先到的情况极少见，但需保证幂等）
     const key = buildBattleKey(msg.battleSettings);
     if (pkChannelTracker.acceptBattle(key)) {
-      warmPkNicknamesFromUserInfos(msg.userInfos);
+      // 关闭 PK 时不能登记昵称：registerPkNickname 会直接写 XML 末尾的 <pk_users> 映射表
+      if (this.savePk !== false) warmPkNicknamesFromUserInfos(msg.userInfos);
     }
   });
 
@@ -921,7 +922,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     // 场景 1（本场已由开始事件建过缓存）或重复的结束事件 => 跳过，不重复写入
     const key = buildBattleKey(msg.battleSettings);
     if (pkChannelTracker.acceptBattleFinish(key)) {
-      warmPkNicknamesFromUserInfos(msg.userInfos);
+      // 同 linkMicBattle：关闭 PK 时不写昵称映射表
+      if (this.savePk !== false) warmPkNicknamesFromUserInfos(msg.userInfos);
     }
   });
 
@@ -1045,6 +1047,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     void appendPkRawLog(downloader.videoFilePath, "linkMic", msg);
     const extraDataController = downloader.getExtraDataController();
     if (!extraDataController) return;
+    if (this.savePk === false) return;
     // 昵称不进消息体、**也不在录制期查询**：`addMessage` 会把本场选手 uid 交给
     // controller 登记（`pkUidsSeen`），查询统一推迟到 `flush` 前批量完成
     // （见 `resolvePendingPkNicknames`）—— 有 battle 的场次因此零请求。

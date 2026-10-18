@@ -190,6 +190,12 @@
           </n-form-item>
           <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording">
             <template #label>
+              <span class="inline-flex"> 保存PK分数 </span>
+            </template>
+            <n-switch v-model:value="config.recorder.savePk" />
+          </n-form-item>
+          <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording">
+            <template #label>
               <span class="inline-flex"> 高能弹幕(SC) </span>
             </template>
             <n-switch v-model:value="config.recorder.saveSCDanma" />

@@ -36,6 +36,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   segment?: string;
   // 保存礼物弹幕
   saveGiftDanma?: boolean;
+  // 保存 PK 分数
+  savePk?: boolean;
   // 保存高能弹幕
   saveSCDanma?: boolean;
   /** 保存封面 */
@@ -117,6 +119,7 @@ export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreat
     | "saveCover"
     | "convert2Mp4"
     | "saveGiftDanma"
+    | "savePk"
     | "disableProvideCommentsWhenRecording"
     | "liveInfo"
     | "uid"

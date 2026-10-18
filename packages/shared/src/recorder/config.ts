@@ -233,6 +233,7 @@ export default class RecorderConfig {
       line: getValue("line"),
       disableProvideCommentsWhenRecording: disableProvideCommentsWhenRecording,
       saveGiftDanma: getValue("saveGiftDanma") ?? false,
+      savePk: getValue("savePk") ?? true,
       saveSCDanma: getValue("saveSCDanma") ?? true,
       saveDanmaStats2DB: getValue("saveDanmaStats2DB") ?? false,
       saveCover: getValue("saveCover") ?? false,
