@@ -37,6 +37,14 @@ export interface GiveGift<E extends AnyObject = UnknownObject> {
   text?: string;
   cost?: number;
   color?: string;
+  /** 礼物图标的相对路径（抖音形如 webcast/xxx.png，由消费方自行拼 CDN 前缀） */
+  imageUri?: string;
+  /**
+   * 礼物 ID。礼物名**不是**唯一标识（实测「点亮粉丝团」同时对应 giftId 6937/6938 且两图不同），
+   * 只能靠 ID 区分，故消息上必须带它才能查图标表。
+   * 用字符串承载：上游 proto 里是 uint64，运行时是 Long 对象。
+   */
+  giftId?: string;
   sender?: MessageSender;
   extra?: E;
 }
