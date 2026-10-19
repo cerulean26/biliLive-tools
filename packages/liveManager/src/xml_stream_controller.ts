@@ -390,6 +390,7 @@ function generateXmlContent(metadata: XmlStreamData["meta"], messages: Message[]
         "@@timestamp": String(ele.timestamp),
         "@@level": String(ele?.sender?.extra?.level ?? "0"),
         "@@club_level": String(ele?.sender?.extra?.clubLevel ?? "0"),
+        ...(ele.giftId ? { "@@giftid": ele.giftId } : {}),
       };
     });
 

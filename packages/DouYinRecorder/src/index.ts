@@ -1010,6 +1010,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       price: msg.gift.diamondCount / 10 || 0,
       count: Number(msg.totalCount ?? 1),
       color: "#ffffff",
+      // 用 String()：proto 里 giftId 是 uint64，运行时是 Long 对象，不能直接当 number 用
+      giftId: String(msg.giftId ?? ""),
       sender: {
         uid: msg.user.id,
         name: msg?.user?.nickName || "unknown",
