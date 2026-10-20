@@ -282,6 +282,54 @@ export function createPkRawLogger(
 }
 
 /**
+ * 直播间人数消息原始报文转储（调试用）。
+ *
+ * 目的：确认 `RoomUserSeqMessage` / `RoomStatsMessage` 里哪个字段反映真实在线人数 ——
+ * `seq` 的 `total` 是滞后快照、`onlineUserForAnchor` 是主播端口径的格式化文本，
+ * 只有 `stats` 的 `displayValue` 是精确值（与 `total` 恒等）。排查时要看原始报文。
+ *
+ * 命名与 PK 转储一致：`${视频文件名}_room_raw.jsonl`，一行一条，便于 grep / jq。
+ * 其余行为同 `createPkRawLogger`：按输出文件隔离、首条消息才创建、覆盖写、失败只告警。
+ *
+ * @param enabled 是否启用。默认读环境变量 `BILILIVE_TOOLS_ROOM_RAW_LOG`（值为 `"1"` 时开启）——
+ *   **默认关闭**：`roomStats` 约 0.6 秒一条（折算约 5700 条/小时），属排查用的临时产物，
+ *   不该默认产生。关闭时返回空操作（连文件都不创建）。
+ */
+export function createRoomRawLogger(
+  enabled: boolean = process.env.BILILIVE_TOOLS_ROOM_RAW_LOG === "1",
+): (videoPath: string | undefined, tag: string, payload: unknown) => Promise<void> {
+  if (!enabled) return async () => {};
+
+  let path: string | null = null;
+  let ready: Promise<void> | null = null;
+
+  return async (videoPath, tag, payload) => {
+    if (!videoPath) return;
+    const target = `${videoPath}_room_raw.jsonl`;
+    try {
+      if (path !== target) {
+        path = target;
+        // 覆盖写：同一场录制若重跑，不保留上次的旧数据
+        ready = fs.promises.writeFile(target, "", "utf-8");
+      }
+      await ready;
+    } catch (err) {
+      // 创建失败：复位状态，允许下次重建
+      path = null;
+      ready = null;
+      console.warn(`[roomRawLog] 创建失败: ${(err as Error)?.message ?? err}`);
+      return;
+    }
+    try {
+      const line = JSON.stringify({ tag, at: Date.now(), payload }, longSafeReplacer) + "\n";
+      await fs.promises.appendFile(target, line, "utf-8");
+    } catch (err) {
+      console.warn(`[roomRawLog] 写入失败: ${(err as Error)?.message ?? err}`);
+    }
+  };
+}
+
+/**
  * JSON.stringify 的兜底 replacer：把 protobuf.js 的 Long 对象转成十进制字符串。
  *
  * 背景：抖音的19 位 ID（roomId / channelId / msgId / userId）超过
@@ -893,6 +941,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   // PK 原始日志写入器：**每个录制会话一个实例**，状态随会话创建、不跨会话复用。
   // 早期实现是模块级单例，导致第 2 次录制/另一房间写进第 1 次录制的文件（跨会话串台）。
   const appendPkRawLog = createPkRawLogger();
+  // 人数消息转储：默认关闭，设 BILILIVE_TOOLS_ROOM_RAW_LOG=1 才写 _room_raw.jsonl
+  const appendRoomRawLog = createRoomRawLogger();
 
   client.on("linkMicBattle", (msg) => {
     // user_infos 是 map<int64,...>，protobufjs 把 int64 键转成不可读哈希串；
@@ -925,6 +975,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       // 同 linkMicBattle：关闭 PK 时不写昵称映射表
       if (this.savePk !== false) warmPkNicknamesFromUserInfos(msg.userInfos);
     }
+  });
+
+  // 人数相关消息（转储开关见 createRoomRawLogger）。两者原样落盘，便于比对字段口径。
+  client.on("roomUserSeq", (msg) => {
+    void appendRoomRawLog(downloader.videoFilePath, "roomUserSeq", msg);
+  });
+  client.on("roomStats", (msg) => {
+    void appendRoomRawLog(downloader.videoFilePath, "roomStats", msg);
   });
 
   client.on("chat", (msg) => {
