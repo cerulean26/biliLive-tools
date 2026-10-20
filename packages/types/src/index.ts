@@ -61,6 +61,7 @@ export const recorderNoGlobalFollowFields: Array<
   "saveGiftDanma",
   "saveSCDanma",
   "savePk",
+  "saveRoomStats",
   "saveDanmaStats2DB",
   "segment",
   "uid",
@@ -481,6 +482,8 @@ export interface GlobalRecorder {
   saveGiftDanma?: boolean;
   /** 保存 PK 分数 */
   savePk?: boolean;
+  /** 保存在线人数（仅抖音） */
+  saveRoomStats?: boolean;
   /** 保存高能弹幕 */
   saveSCDanma?: boolean;
   /** 弹幕是否使用服务端时间戳 */
@@ -554,6 +557,8 @@ export interface Recorder {
   saveGiftDanma?: boolean;
   /** 保存 PK 分数 */
   savePk?: boolean;
+  /** 保存在线人数（仅抖音） */
+  saveRoomStats?: boolean;
   /** 弹幕是否使用服务端时间戳 */
   useServerTimestamp: boolean;
   /** 保存高能弹幕 */

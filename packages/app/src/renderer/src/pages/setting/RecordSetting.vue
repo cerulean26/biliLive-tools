@@ -190,12 +190,6 @@
           </n-form-item>
           <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording">
             <template #label>
-              <span class="inline-flex"> 保存PK分数 </span>
-            </template>
-            <n-switch v-model:value="config.recorder.savePk" />
-          </n-form-item>
-          <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording">
-            <template #label>
               <span class="inline-flex"> 高能弹幕(SC) </span>
             </template>
             <n-switch v-model:value="config.recorder.saveSCDanma" />
@@ -631,6 +625,33 @@
               <template #suffix>毫秒</template>
             </n-input-number>
           </n-form-item>
+
+          <div class="divider"></div>
+          <h3>弹幕</h3>
+          <n-form-item>
+            <template #label>
+              <span class="inline-flex"> 保存PK分数 </span>
+            </template>
+            <n-switch
+              v-model:value="config.recorder.savePk"
+              :disabled="config.recorder.disableProvideCommentsWhenRecording"
+            />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                text="在线人数"
+                tip="把在线人数的变化记录到 XML，供录制预览查看。只记录数值发生变化的采样点，因此活跃直播间的数据量会更大"
+              ></Tip>
+            </template>
+            <n-switch
+              v-model:value="config.recorder.saveRoomStats"
+              :disabled="config.recorder.disableProvideCommentsWhenRecording"
+            />
+          </n-form-item>
+          <div v-if="config.recorder.disableProvideCommentsWhenRecording" class="disabled-hint">
+            需先在「基础设置」中开启「弹幕录制」，这两项才会生效
+          </div>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="xhs" tab="小红书" display-directive="show:lazy">
           <h3 style="margin-bottom: 10px">设置Cookie可自动监听，建议使用小号</h3>
@@ -1050,5 +1071,12 @@ h3 {
   background-color: var(--bg-hover);
   margin-bottom: 14px;
   margin-top: -10px;
+}
+
+// 开关因前置条件未满足而禁用时的说明，避免用户以为是故障
+.disabled-hint {
+  font-size: 12px;
+  opacity: 0.6;
+  padding-left: 2px;
 }
 </style>

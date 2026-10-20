@@ -16,6 +16,7 @@ import type {
   RecordHandle,
   Comment,
   GiveGift,
+  Message,
 } from "@bililive-tools/manager";
 
 import { getInfo, getStream } from "./stream.js";
@@ -608,6 +609,45 @@ export function sortPkPlayers<T extends { uid: string; rank?: string; teamRank?:
 }
 
 /**
+ * 从 `WebcastRoomStatsMessage` 构造 `room_stats` 消息（纯函数，便于单测）。
+ *
+ * **取值口径只认 `displayValue`**：实测它与 `total` 恒等，是唯一精确的在线人数。
+ * 不用 `RoomUserSeqMessage` —— 其 `total` 是滞后快照（同刻差 +219~-488 且随人数上升单调变负），
+ * `onlineUserForAnchor` 是主播端口径的格式化文本（「1.3万」），都无法落到数值字段。
+ *
+ * 抽成纯函数的原因：`save` 开关原先埋在事件回调里，无法被测试覆盖。
+ * 与 `buildPkScoreMessage` 同一约定：不可用时返回 `null`，由调用方丢弃。
+ *
+ * @param options.save 用户是否开启「在线人数」开关；`false` 时返回 `null`
+ * @returns room_stats 消息；开关关闭或取不到人数时返回 `null`
+ */
+export function buildRoomStatsMessage(
+  msg: {
+    displayValue?: string | number;
+    common?: { createTime?: string | number };
+  },
+  options: { useServerTimestamp: boolean; save?: boolean },
+): Message | null {
+  const { useServerTimestamp, save = true } = options;
+  if (!save) return null;
+
+  const online = String(msg.displayValue ?? "");
+  if (!online) return null;
+
+  const createTime = Number(msg.common?.createTime ?? 0);
+  return {
+    type: "room_stats",
+    // createTime 有秒/毫秒两种口径（实测两种都出现过），按数值大小判别
+    timestamp: useServerTimestamp
+      ? createTime > 9999999999
+        ? createTime
+        : createTime * 1000
+      : Date.now(),
+    online,
+  };
+}
+
+/**
  * 从 `WebcastLinkMicMethod` 消息构造 `pk_score` 消息（纯函数，便于单测）。
  *
  * **为什么需要抽出来**：`msg.userScores` 在 proto 里是 `repeated`，抖音的
@@ -985,21 +1025,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     void appendRoomRawLog(downloader.videoFilePath, "roomStats", msg);
     const extraDataController = downloader.getExtraDataController();
     if (!extraDataController) return;
-    // 只认 displayValue：实测它与 total 恒等，是唯一精确的在线人数。
-    // 不用 RoomUserSeqMessage —— 其 total 是滞后快照（同刻差 +219~-488 且随人数上升单调变负），
-    // onlineUserForAnchor 是主播端口径的格式化文本（「1.3万」）。
-    const online = String(msg.displayValue ?? "");
-    if (!online) return;
-    const createTime = Number(msg.common?.createTime ?? 0);
-    extraDataController.addMessage({
-      type: "room_stats",
-      timestamp: this.useServerTimestamp
-        ? createTime > 9999999999
-          ? createTime
-          : createTime * 1000
-        : Date.now(),
-      online,
+    const roomStatsMessage = buildRoomStatsMessage(msg, {
+      // `useServerTimestamp` 在 Recorder 类型里是可选的；`?? false` 与原三元表达式
+      // 的语义一致（undefined 视为关闭 → 用本地时间）
+      useServerTimestamp: this.useServerTimestamp ?? false,
+      save: this.saveRoomStats !== false,
     });
+    if (!roomStatsMessage) return;
+    extraDataController.addMessage(roomStatsMessage);
   });
 
   client.on("chat", (msg) => {

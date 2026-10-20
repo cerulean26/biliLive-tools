@@ -49,6 +49,7 @@ export function defaultToJSON<E extends AnyObject>(
       "convert2Mp4",
       "saveGiftDanma",
       "savePk",
+      "saveRoomStats",
       "disableProvideCommentsWhenRecording",
       "liveInfo",
       "uid",

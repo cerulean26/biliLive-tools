@@ -148,6 +148,13 @@ const globalFollowCases = [
     providerIds: allProviderIds,
   },
   {
+    title: "在线人数：saveRoomStats",
+    key: "saveRoomStats",
+    globalValue: true,
+    localValue: false,
+    providerIds: allProviderIds,
+  },
+  {
     title: "服务端时间戳：useServerTimestamp",
     key: "useServerTimestamp",
     globalValue: false,
@@ -243,6 +250,20 @@ describe("RecorderConfig", () => {
     it("应该返回 null 当找不到对应的录制器配置时", () => {
       const result = recorderConfig.get("non_existent_id");
       expect(result).toBeNull();
+    });
+
+    it("在线人数：全局配置缺 saveRoomStats 时回退为 true（老配置升级后不丢数据）", () => {
+      mockAppConfig.get.mockImplementation((key: string) => {
+        if (key === "recorder") {
+          return {};
+        }
+        if (key === "recorders") {
+          return [{ id: "dy", providerId: "DouYin", channelId: "1" }];
+        }
+        return null;
+      });
+
+      expect(recorderConfig.get("dy")?.saveRoomStats).toBe(true);
     });
 
     describe("流编码：codecName", () => {
