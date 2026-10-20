@@ -983,6 +983,23 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   });
   client.on("roomStats", (msg) => {
     void appendRoomRawLog(downloader.videoFilePath, "roomStats", msg);
+    const extraDataController = downloader.getExtraDataController();
+    if (!extraDataController) return;
+    // 只认 displayValue：实测它与 total 恒等，是唯一精确的在线人数。
+    // 不用 RoomUserSeqMessage —— 其 total 是滞后快照（同刻差 +219~-488 且随人数上升单调变负），
+    // onlineUserForAnchor 是主播端口径的格式化文本（「1.3万」）。
+    const online = String(msg.displayValue ?? "");
+    if (!online) return;
+    const createTime = Number(msg.common?.createTime ?? 0);
+    extraDataController.addMessage({
+      type: "room_stats",
+      timestamp: this.useServerTimestamp
+        ? createTime > 9999999999
+          ? createTime
+          : createTime * 1000
+        : Date.now(),
+      online,
+    });
   });
 
   client.on("chat", (msg) => {

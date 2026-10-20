@@ -87,4 +87,18 @@ export interface PkScore {
   }[];
 }
 
-export type Message = Comment | GiveGift | SuperChat | Guard | PkScore;
+/**
+ * 直播间在线人数采样。
+ *
+ * 值取自 `RoomStatsMessage.displayValue`（与 `total` 恒等）—— 这是唯一精确反映在线人数的字段：
+ * `RoomUserSeqMessage` 的 `total` 是滞后快照（与 roomStats 同刻差 +219~-488，且随人数上升单调变负），
+ * `onlineUserForAnchor` 是主播端口径的格式化文本（「1.3万」）。
+ * 用字符串承载：proto 里是 int64，`toJSON()` 输出字符串。
+ */
+export interface RoomStats {
+  type: "room_stats";
+  timestamp: number;
+  online: string;
+}
+
+export type Message = Comment | GiveGift | SuperChat | Guard | PkScore | RoomStats;
