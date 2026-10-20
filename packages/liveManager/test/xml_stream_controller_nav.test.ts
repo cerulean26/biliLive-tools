@@ -57,12 +57,12 @@ describe("表头导航", () => {
   });
 });
 
-describe("空区块抑制：上船 / SC 按数据条件渲染", () => {
+describe("空区块抑制：上船 / SC / 礼物按数据条件渲染", () => {
   it("上船区块被 /i/guard 条件包裹", async () => {
     const xml = await writeXml();
 
     expect(xml).toContain('<z:if test="/i/guard"><h2 id="guard">');
-    // 收尾的 z:if 必须紧邻 SC 区块的开口，否则会吞掉礼物区块
+    // 收尾的 z:if 必须紧邻 SC 区块的开口，否则会吞掉后面的区块
     expect(xml).toContain('</z:for-each></table></div></z:if><z:if test="/i/sc"><h2 id="sc">');
   });
 
@@ -70,14 +70,41 @@ describe("空区块抑制：上船 / SC 按数据条件渲染", () => {
     const xml = await writeXml();
 
     expect(xml).toContain('<z:if test="/i/sc"><h2 id="sc">');
-    expect(xml).toContain('</z:for-each></table></div></z:if><h2 id="gift">');
+    expect(xml).toContain('</z:for-each></table></div></z:if><z:if test="/i/gift"><h2 id="gift">');
   });
 
-  it("表头里的上船 / SC 入口同样按数据条件渲染", async () => {
+  it("礼物区块被 /i/gift 条件包裹", async () => {
+    const xml = await writeXml();
+
+    expect(xml).toContain('<z:if test="/i/gift"><h2 id="gift">');
+    expect(xml).toContain('</z:for-each></table></div></z:if><z:if test="/i/room"><h2 id="room">');
+  });
+
+  it("表头里的上船 / SC / 礼物入口同样按数据条件渲染", async () => {
     const xml = await writeXml();
 
     expect(xml).toContain('<z:if test="/i/guard"><tr><td><a href="#guard">上船</a></td>');
     expect(xml).toContain('<z:if test="/i/sc"><tr><td><a href="#sc">SC</a></td>');
+    expect(xml).toContain('<z:if test="/i/gift"><tr><td><a href="#gift">礼物</a></td>');
+  });
+
+  it("弹幕是主内容，不挂条件 —— 即使 0 条也保留区块", async () => {
+    const xml = await writeXml();
+
+    // 表头：弹幕行紧跟在「主播名」之后，中间不该出现 z:if
+    expect(xml).toContain(
+      '<tr><td>主播名</td><td><z:value-of select="/i/metadata/user_name/text()"/></td></tr><tr><td><a href="#d">弹幕</a></td>',
+    );
+    // 正文：表头结束时直接进入 <h2 id="d">，没有条件包裹
+    expect(xml).toContain('</table><h2 id="d">弹幕</h2>');
+  });
+
+  it("PK / PK选手沿用既有的 /i/pk、/i/pk_users 条件（抖音产物不渲染）", async () => {
+    const xml = await writeXml();
+
+    expect(xml).toContain('<z:if test="/i/pk"><tr><td><a href="#pk">PK</a></td>');
+    expect(xml).toContain('<z:if test="/i/pk"><h2 id="pk">PK分数</h2>');
+    expect(xml).toContain('<z:if test="/i/pk_users"><h2 id="pk_users">PK选手</h2>');
   });
 });
 
