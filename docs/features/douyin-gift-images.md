@@ -130,9 +130,9 @@ XSL 侧用 `concat(@i,'|',@n)` 建索引，与 `<gift>` 上的 `concat(@giftid,'
 
 头像 / 用户名 / 用户ID / 图标 / 礼物名 / 礼物数量 / 出现时间
 
-查不到图片时该单元格为空，**不会拼出无效地址**。
+查不到图片时该单元格为空，**不会拼出无效地址**。地址拼对了但图片本身取不到（CDN 换图、403/404、断网）时，`<img>` 上的 `onerror` 会移除自己 —— 单元格留空但不留破图，`<td>` 仍在，列宽与对齐不受影响。
 
-图片一律带 `loading="lazy" decoding="async"`。一份 19 分钟的产物（2175 条礼物）会产生 4350 个 `<img>`、1802 个唯一 URL（头像 1759 + 图标 43），而表格只在 `max-height:80vh` 的容器里滚动显示，可见不足 20 行。headless Chrome 实测同一结构下 2000 个唯一图片 URL：不加 lazy 全部请求，加 lazy 只请求 **67** 个（-96.7%），并且滚动到哪补到哪（67 → 180）。
+图片一律带 `loading="lazy" decoding="async" onerror="this.remove()"`（三者由源码里的 `GIFT_IMG_ATTRS` 常量统一给出，5 个图片分支共用，所以不会漏某个分支）。一份 19 分钟的产物（2175 条礼物）会产生 4350 个 `<img>`、1802 个唯一 URL（头像 1759 + 图标 43），而表格只在 `max-height:80vh` 的容器里滚动显示，可见不足 20 行。headless Chrome 实测同一结构下 2000 个唯一图片 URL：不加 lazy 全部请求，加 lazy 只请求 **67** 个（-96.7%），并且滚动到哪补到哪（67 → 180）。
 
 ## 如何拼出完整 URL
 
@@ -153,13 +153,13 @@ XSL 里的写法（已实测）：
 <z:if test="string($u)">
   <z:choose>
     <z:when test="starts-with($u,'webcast/')">
-      <img height="24" loading="lazy" decoding="async" src="https://p3-webcast.douyinpic.com/img/{$u}~tplv-obj.image"/>
+      <img height="24" loading="lazy" decoding="async" onerror="this.remove()" src="https://p3-webcast.douyinpic.com/img/{$u}~tplv-obj.image"/>
     </z:when>
     <z:when test="starts-with($u,'aweme-avatar/')">
-      <img height="24" loading="lazy" decoding="async" src="https://p11.douyinpic.com/aweme/100x100/{$u}.jpeg"/>
+      <img height="24" loading="lazy" decoding="async" onerror="this.remove()" src="https://p11.douyinpic.com/aweme/100x100/{$u}.jpeg"/>
     </z:when>
     <z:otherwise>
-      <img height="24" loading="lazy" decoding="async" src="https://p11.douyinpic.com/aweme/{$u}.jpeg"/>
+      <img height="24" loading="lazy" decoding="async" onerror="this.remove()" src="https://p11.douyinpic.com/aweme/{$u}.jpeg"/>
     </z:otherwise>
   </z:choose>
 </z:if>
@@ -177,3 +177,4 @@ XSL 里的写法（已实测）：
 4. **匿名身份**：抖音匿名占位 uid `111111` 会被多个不同昵称共用（实测一份 6 分钟产物里 3 个），且各自下发的头像 uri 形态不统一（`aweme-avatar/…` 缺尺寸段 / `webcast/…` / `100x100/aweme-avatar/…`）。键已用 `(uid, 昵称)` 区分、三类前缀都已兜底，但仍是「首见即定」——同一昵称中途换头像不会跟着更新。
 5. **头像只有送礼者才有**：头像数据只在礼物消息里下发，没送过礼物的用户不会有 `a` 属性。
 6. **同一 `giftId` 的多个名字，只有首见那个有图**：实测 `685` 同时下发 粉丝团灯牌 / 点点星光 / 闪烁星河，但所有产物与原始转储里只记录到 粉丝团灯牌 的 `image.uri`（它总是最先出现）。所以这三个名字的 `<gi>` 会指向同一张图，**三者图标是否真的相同尚未证实**。取证方式：设 `BILILIVE_TOOLS_GIFT_RAW_LOG=1` 录一场，抓到 点点星光 的 `gift.image.uri` 再比对；在此之前不要凭猜测补表项。
+7. **`onerror` 只覆盖「取不到」**：HTTP 200 但内容本身是错误占位图（CDN 默认图）不会触发 `onerror`，仍会显示出来。另外样式表是内嵌在 XML 里的，**只有新录制的文件带 `onerror`**，旧产物打开还是老行为（要修只能重新生成样式表）。

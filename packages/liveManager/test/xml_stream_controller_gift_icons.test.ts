@@ -293,7 +293,7 @@ describe("礼物图标表与头像内联", () => {
     expect(countOf(await fs.readFile(second.savePath, "utf8"), "gi")).toBe(1);
   });
 
-  it("所有 img 都带懒加载 —— 上千个图片并发会拖慢首屏", async () => {
+  it("所有 img 都带懒加载与 onerror 兜底 —— 上千个图片并发会拖慢首屏，单张挂掉会留破图", async () => {
     const { controller, savePath, start } = await makeController();
 
     controller.addMessage(
@@ -309,12 +309,14 @@ describe("礼物图标表与头像内联", () => {
 
     const xml = await fs.readFile(savePath, "utf8");
     // img 只出现在内嵌样式表的模板里，共 5 个分支：头像(webcast / aweme-avatar 缺尺寸 / aweme)
-    // + 图标(webcast / aweme)。固定为 5 是有意的：将来新增分支却漏加 lazy 时，这里会红。
+    // + 图标(webcast / aweme)。固定为 5 是有意的：将来新增分支却漏加 lazy/onerror 时，这里会红。
     const imgs = xml.match(/<img[^>]*>/g) ?? [];
     expect(imgs).toHaveLength(5);
     for (const tag of imgs) {
       expect(tag).toContain('loading="lazy"');
       expect(tag).toContain('decoding="async"');
+      // 单个头像/图标 403 或网络失败时不留破图。只移除 img，<td> 仍在，列不会错位。
+      expect(tag).toContain('onerror="this.remove()"');
     }
   });
 
