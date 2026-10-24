@@ -55,6 +55,11 @@ interface GiftIconEntry {
  * 拼接无歧义：`giftId` 是纯数字（proto 里是整型），不含分隔符 `|`，
  * 故任意两组不同的 `(id, name)` 拼出的键必不相同，`@n` 是否含 `|` 都不影响这一点。
  *
+ * `giftId` 为空时键退化成 `|礼物名`，首段仍不含 `|`，与任何数字 id 的键都不相等。
+ * 所以**不能**因为「没有 id」就跳过建表 —— 那会让有图却查不到的礼物静默丢掉图标。
+ * 这是降级不是等价：空 id 的产物在该礼物名上失去同名区分能力（同名不同 id 共用首见图）。
+ * 实测 4 份产物 0 命中 —— 抖音正常都下发该字段，此路只在字段缺失时兜底。
+ *
  * ⚠️ XSL 侧用 `concat(@i,'|',@n)` 复现同一个键（见 `XML_FILE_HEADER` 的 `giById`），
  * 两侧必须同步改；只改一侧时 `key()` 返回空集，图标会**静默全部消失**，不报错。
  */
@@ -513,11 +518,12 @@ function generateXmlContent(
       const uid = String(ele?.sender?.uid ?? "");
       // 与 `@@user` 必须同源：XSL 用 `@user` 参与拼键，两边取值不一致就查不到头像。
       const userName = String(ele.sender?.name);
-      const iconKey = giftId ? giftIconKey(giftId, giftName) : "";
+      const iconKey = giftIconKey(giftId, giftName);
       // 「首见」要同时判两张表：`giftIcons` 是跨批已提交的，`newGiftIcons` 是本批的。
       // 只判前者时，同一批（10 秒窗口）内同一键第二次出现会覆盖首见图，
       // 是否取到首见就成了 flush 时机的隐式结果。
-      if (iconKey && ele.imageUri && !giftIcons.has(iconKey) && !newGiftIcons.has(iconKey)) {
+      // 不按 giftId 是否为空分流：空 id 的键是 `|礼物名`，天然与数字 id 的键不撞（见 giftIconKey）。
+      if (ele.imageUri && !giftIcons.has(iconKey) && !newGiftIcons.has(iconKey)) {
         newGiftIcons.set(iconKey, { giftId, name: giftName, uri: ele.imageUri });
       }
       // 头像就地写在「该 (uid, 昵称) 首个带头像的礼物」上，不另建 `<ui>` 表：表项要把 uid 与
@@ -545,7 +551,9 @@ function generateXmlContent(
         "@@timestamp": String(ele.timestamp),
         "@@level": String(ele?.sender?.extra?.level ?? "0"),
         "@@club_level": String(ele?.sender?.extra?.clubLevel ?? "0"),
-        // 查图标表的键由 giftid 与 giftname 共同拼成（见 giftIconKey），两个属性缺一不可。
+        // 查图标表的键由 giftid 与 giftname 共同拼成（见 giftIconKey），缺 giftid 就退回「只按名字」，
+        // 同名不同 id 会串图 —— 所以有值时一定要写。为空（wire 里没这个字段）才省掉这两个字节：
+        // XPath 里不存在的属性按空串参与 concat，键仍是 `|礼物名`，与声明行的 `<gi i="">` 对得上。
         ...(giftId ? { "@@giftid": giftId } : {}),
         // 头像只在首见那条上出现，XSL 按 (uid, 昵称) 反查（不是逐条都写）。
         ...(avatar ? { "@@a": avatar } : {}),

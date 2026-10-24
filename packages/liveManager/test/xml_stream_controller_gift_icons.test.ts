@@ -206,6 +206,44 @@ describe("礼物图标表与头像内联", () => {
     expect(xml).toContain("key('giById',concat(@giftid,'|',@giftname))/@u");
   });
 
+  it("giftId 缺失时图标照样声明 —— 空 id 也必须建表，否则整列静默空", async () => {
+    const { controller, savePath, start } = await makeController();
+
+    // 抖音正常都带 giftId，但该字段来自 wire：缺字段时 String(undefined ?? "") 就是空串。
+    controller.addMessage(
+      gift({ name: "星光点点", imageUri: "webcast/noid.png", timestamp: start }),
+    );
+    await controller.flush();
+
+    const xml = await fs.readFile(savePath, "utf8");
+    const rows = giRows(xml);
+    expect(rows).toHaveLength(1);
+    // `i` 写空串，XSL 的 use="concat(@i,'|',@n)" 得到 "|星光点点"
+    expect(rows[0]).toEqual({ i: "", n: "星光点点", u: "webcast/noid.png" });
+    // 礼物行仍不写 @giftid（省字节）。XPath 里不存在的属性按空串参与 concat，键仍对得上。
+    expect(giftRows(xml)[0].giftid).toBeUndefined();
+  });
+
+  it("空 giftId 的键不会与数字 id 撞键 —— 分界就是第一个 '|'", async () => {
+    const { controller, savePath, start } = await makeController();
+
+    // 名字里带 '|' 也不破坏唯一性：id 段永远在第一个 '|' 之前
+    controller.addMessage(
+      gift({ name: "6937|星光", imageUri: "webcast/no-id.png", timestamp: start }),
+    );
+    controller.addMessage(
+      gift({ giftId: "6937", name: "星光", imageUri: "webcast/with-id.png", timestamp: start + 1 }),
+    );
+    await controller.flush();
+
+    const rows = giRows(await fs.readFile(savePath, "utf8"));
+    expect(rows).toHaveLength(2);
+    expect(rows.map((r) => [r.i, r.n, r.u])).toEqual([
+      ["", "6937|星光", "webcast/no-id.png"],
+      ["6937", "星光", "webcast/with-id.png"],
+    ]);
+  });
+
   it("没有图片时不声明，礼物行也不再逐条写图片属性", async () => {
     const { controller, savePath, start } = await makeController();
 
