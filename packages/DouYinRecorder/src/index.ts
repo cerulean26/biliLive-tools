@@ -331,6 +331,55 @@ export function createRoomRawLogger(
 }
 
 /**
+ * 礼物原始消息转储（调试用）。
+ *
+ * 目的：确认 `GiftStruct.image` / `icon` 是否下发、里面有哪些字段有值。
+ * 注意 `dy.proto` 的 `Image.urlListList = 1` 目前是注释状态，运行时**拿不到 URL 列表**，
+ * 只能看 `uri` / `openWebUrl` / `height` / `width` 这些字段。
+ *
+ * 与 PK 转储相互独立：独立实例、独立文件名（`_gift_raw.jsonl`），互不影响。
+ * 其余行为（按输出文件隔离、覆盖写、失败只告警）与 `createPkRawLogger` 一致，详见其文档。
+ *
+ * @param enabled 是否启用。默认读环境变量 `BILILIVE_TOOLS_GIFT_RAW_LOG`（值为 `"1"` 时开启）——
+ *   **默认关闭**：礼物通常是全场条数最多的消息，且单行约 2 KB（实测 71 条 = 150 KB、
+ *   1017 条 = 2.0 MB），远大于 PK 转储（约 160 KB），属排查用的临时产物，不该默认产生。
+ *   关闭时返回空操作（连文件都不创建）。
+ */
+export function createGiftRawLogger(
+  enabled: boolean = process.env.BILILIVE_TOOLS_GIFT_RAW_LOG === "1",
+): (videoPath: string | undefined, tag: string, payload: unknown) => Promise<void> {
+  if (!enabled) return async () => {};
+
+  let path: string | null = null;
+  let ready: Promise<void> | null = null;
+
+  return async (videoPath, tag, payload) => {
+    if (!videoPath) return;
+    const target = `${videoPath}_gift_raw.jsonl`;
+    try {
+      if (path !== target) {
+        path = target;
+        // 覆盖写：同一场录制若重跑，不保留上次的旧数据
+        ready = fs.promises.writeFile(target, "", "utf-8");
+      }
+      await ready;
+    } catch (err) {
+      // 创建失败：复位状态，允许下次重建
+      path = null;
+      ready = null;
+      console.warn(`[giftRawLog] 创建失败: ${(err as Error)?.message ?? err}`);
+      return;
+    }
+    try {
+      const line = JSON.stringify({ tag, at: Date.now(), payload }, longSafeReplacer) + "\n";
+      await fs.promises.appendFile(target, line, "utf-8");
+    } catch (err) {
+      console.warn(`[giftRawLog] 写入失败: ${(err as Error)?.message ?? err}`);
+    }
+  };
+}
+
+/**
  * JSON.stringify 的兜底 replacer：把 protobuf.js 的 Long 对象转成十进制字符串。
  *
  * 背景：抖音的19 位 ID（roomId / channelId / msgId / userId）超过
@@ -983,6 +1032,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const appendPkRawLog = createPkRawLogger();
   // 人数消息转储：默认关闭，设 BILILIVE_TOOLS_ROOM_RAW_LOG=1 才写 _room_raw.jsonl
   const appendRoomRawLog = createRoomRawLogger();
+  // 礼物原始消息转储（临时调试，与 PK 转储独立）：确认 gift.image 下发了哪些字段。
+  const appendGiftRawLog = createGiftRawLogger();
 
   client.on("linkMicBattle", (msg) => {
     // user_infos 是 map<int64,...>，protobufjs 把 int64 键转成不可读哈希串；
@@ -1102,6 +1153,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     extraDataController.addMessage(comment);
   });
   client.on("gift", (msg) => {
+    // 先落盘原始消息：刻意放在礼物开关判断**之前**，这样关闭「保存礼物」时
+    // 仍能拿到原始报文排查图片字段（转储默认关闭，见 `createGiftRawLogger`）
+    void appendGiftRawLog(downloader.videoFilePath, "gift", msg);
     const extraDataController = downloader.getExtraDataController();
     if (!extraDataController) return;
     if (this.saveGiftDanma === false) return;
@@ -1118,11 +1172,15 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       price: msg.gift.diamondCount / 10 || 0,
       count: Number(msg.totalCount ?? 1),
       color: "#ffffff",
+      // 只存相对路径（webcast/xxx.png）：CDN 域名与模板参数由消费方拼接，避免域名轮换后数据失效
+      imageUri: msg.gift.image?.uri,
       // 用 String()：proto 里 giftId 是 uint64，运行时是 Long 对象，不能直接当 number 用
       giftId: String(msg.giftId ?? ""),
       sender: {
         uid: msg.user.id,
         name: msg?.user?.nickName || "unknown",
+        // 头像相对路径（100x100/aweme-avatar/xxx，无扩展名），抖音只下发 AvatarThumb
+        avatar: msg.user.AvatarThumb?.uri,
         extra: {
           level: msg.user.PayGrade?.level ?? "0",
           clubLevel: msg.user.FansClub?.data?.level ?? "0",
