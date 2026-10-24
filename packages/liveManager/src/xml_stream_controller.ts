@@ -9,8 +9,36 @@ import { pick } from "lodash-es";
 import { Message } from "./common.js";
 
 const METADATA_PLACEHOLDER = "<!--METADATA_PLACEHOLDER-->";
-const XML_FILE_HEADER = `<?xml version="1.0" encoding="utf-8"?>\n<?xml-stylesheet type="text/xsl" href="#s"?>\n<i>\n${METADATA_PLACEHOLDER}\n<RecorderXmlStyle><z:stylesheet version="1.0" id="s" xml:id="s" xmlns:z="http://www.w3.org/1999/XSL/Transform"><z:output method="html"/><z:key name="pkByBattle" match="pk" use="@battle_id"/><z:key name="giById" match="gi" use="@i"/><z:key name="uiByUid" match="ui" use="@i"/><z:template match="/"><html><meta name="viewport" content="width=device-width"/><title>弹幕文件 <z:value-of select="/i/metadata/user_name/text()"/></title><style>body{margin:0}h1,h2,p,table{margin-left:5px}table{border-spacing:0}td,th{border:1px solid grey;padding:1px 5px}th{position:sticky;top:0;background:#4098de}summary{cursor:pointer;font-weight:bold}tr:hover{background:#d9f4ff}div{overflow:auto;max-height:80vh;max-width:100vw;width:fit-content}img{vertical-align:middle}</style><h1>弹幕XML文件</h1><p>本文件不支持在 IE 浏览器里预览，请使用 Chrome Firefox Edge 等浏览器。</p><p>文件用法参考文档 <a href="https://rec.danmuji.org/user/danmaku/">https://rec.danmuji.org/user/danmaku/</a></p><table><tr><td>房间号</td><td><z:value-of select="/i/metadata/room_id/text()"/></td></tr><tr><td>主播名</td><td><z:value-of select="/i/metadata/user_name/text()"/></td></tr><tr><td><a href="#d">弹幕</a></td><td>共<z:value-of select="count(/i/d)"/>条记录</td></tr><tr><td><a href="#guard">上船</a></td><td>共<z:value-of select="count(/i/guard)"/>条记录</td></tr><tr><td><a href="#sc">SC</a></td><td>共<z:value-of select="count(/i/sc)"/>条记录</td></tr><tr><td><a href="#gift">礼物</a></td><td>共<z:value-of select="count(/i/gift)"/>条记录</td></tr><z:if test="/i/pk"><tr><td><a href="#pk">PK</a></td><td>共<z:value-of select="count(/i/pk)"/>条记录</td></tr></z:if></table><h2 id="d">弹幕</h2><div id="dm"><table><tr><th>用户名</th><th>出现时间</th><th>用户ID</th><th>弹幕</th><th>等级</th><th>粉丝团</th><th>参数</th></tr><z:for-each select="/i/d"><tr><td><z:value-of select="@user"/></td><td></td><td></td><td><z:value-of select="."/></td><td><z:value-of select="@level"/></td><td><z:value-of select="@club_level"/></td><td><z:value-of select="@p"/></td></tr></z:for-each></table></div><script>Array.from(document.querySelectorAll('#dm tr')).slice(1).map(t=>t.querySelectorAll('td')).forEach(t=>{let p=t[6].textContent.split(','),a=p[0];t[1].textContent=\`\u0024{(Math.floor(a/60/60)+'').padStart(2,0)}:\u0024{(Math.floor(a/60%60)+'').padStart(2,0)}:\u0024{(a%60).toFixed(3).padStart(6,0)}\`;t[2].innerHTML=\`&lt;a target=_blank rel="nofollow noreferrer" "&gt;\u0024{p[6]}&lt;/a&gt;\`})</script><h2 id="guard">舰长购买</h2><div><table><tr><th>用户名</th><th>用户ID</th><th>舰长等级</th><th>购买数量</th><th>出现时间</th></tr><z:for-each select="/i/guard"><tr><td><z:value-of select="@user"/></td><td><a rel="nofollow noreferrer"><z:attribute name="href"><z:text></z:text><z:value-of select="@uid" /></z:attribute><z:value-of select="@uid"/></a></td><td><z:value-of select="@level"/></td><td><z:value-of select="@count"/></td><td><z:value-of select="@ts"/></td></tr></z:for-each></table></div><h2 id="sc">SuperChat 醒目留言</h2><div><table><tr><th>用户名</th><th>用户ID</th><th>内容</th><th>显示时长</th><th>价格</th><th>出现时间</th></tr><z:for-each select="/i/sc"><tr><td><z:value-of select="@user"/></td><td><a rel="nofollow noreferrer"><z:attribute name="href"><z:text></z:text><z:value-of select="@uid" /></z:attribute><z:value-of select="@uid"/></a></td><td><z:value-of select="."/></td><td><z:value-of select="@time"/></td><td><z:value-of select="@price"/></td><td><z:value-of select="@ts"/></td></tr></z:for-each></table></div><h2 id="gift">礼物</h2><div><table><tr><th>头像</th><th>用户名</th><th>用户ID</th><th>图标</th><th>礼物名</th><th>礼物数量</th><th>出现时间</th><th>等级</th><th>粉丝团</th></tr><z:for-each select="/i/gift"><tr><td><z:variable name="av" select="key('uiByUid',@uid)/@p"/><z:if test="string($av)"><z:choose><z:when test="starts-with($av,'webcast/')"><img height="24" src="https://p3-webcast.douyinpic.com/img/{$av}~tplv-obj.image"/></z:when><z:otherwise><img height="24" src="https://p11.douyinpic.com/aweme/{$av}.jpeg"/></z:otherwise></z:choose></z:if></td><td><z:value-of select="@user"/></td><td><span rel="nofollow noreferrer"><z:attribute name="href"></z:attribute><z:value-of select="@uid"/></span></td><td><z:variable name="gu" select="key('giById',@giftid)/@u"/><z:if test="string($gu)"><z:choose><z:when test="starts-with($gu,'webcast/')"><img height="24" src="https://p3-webcast.douyinpic.com/img/{$gu}~tplv-obj.image"/></z:when><z:otherwise><img height="24" src="https://p11.douyinpic.com/aweme/{$gu}.jpeg"/></z:otherwise></z:choose></z:if></td><td><z:value-of select="@giftname"/></td><td><z:value-of select="@giftcount"/></td><td><z:value-of select="@ts"/></td><td><z:value-of select="@level"/></td><td><z:value-of select="@club_level"/></td></tr></z:for-each></table></div><z:if test="/i/pk"><h2 id="pk">PK分数</h2><z:for-each select="/i/pk[generate-id()=generate-id(key('pkByBattle',@battle_id)[1])]"><details><summary>PK 场次 <z:value-of select="position()"/><z:if test="@battle_id"><z:text>（battle_id </z:text><z:value-of select="@battle_id"/><z:text>）</z:text></z:if></summary><div><table><tr><th>PK时间</th><th>主播</th><th>主播ID</th><th>分数</th><th>排名</th><z:if test="player/@team_rank"><th>团队分数</th><th>团队排名</th></z:if></tr><z:for-each select="key('pkByBattle',@battle_id)"><z:for-each select="player"><z:variable name="pkUid" select="@uid"/><tr><td><z:if test="position()=1"><z:value-of select="../@ts"/></z:if></td><td><z:choose><z:when test="/i/pk_users/user[@uid=$pkUid]"><z:value-of select="/i/pk_users/user[@uid=$pkUid]/@nick"/></z:when><z:otherwise><z:value-of select="@uid"/></z:otherwise></z:choose></td><td><z:value-of select="@uid"/></td><td><z:value-of select="@score"/></td><td><z:value-of select="@rank"/></td><z:if test="../player/@team_rank"><td><z:value-of select="@team_score"/></td><td><z:value-of select="@team_rank"/></td></z:if></tr></z:for-each></z:for-each></table></div></details></z:for-each></z:if><z:if test="/i/pk_users"><h2 id="pk_users">PK选手</h2><div id="pk_users_div"><table><tr><th>主播ID</th><th>主播昵称</th></tr><z:for-each select="/i/pk_users/user"><tr><td><z:value-of select="@uid"/></td><td><z:value-of select="@nick"/></td></tr></z:for-each></table></div></z:if></html></z:template></z:stylesheet></RecorderXmlStyle>\n`;
+const XML_FILE_HEADER = `<?xml version="1.0" encoding="utf-8"?>\n<?xml-stylesheet type="text/xsl" href="#s"?>\n<i>\n${METADATA_PLACEHOLDER}\n<RecorderXmlStyle><z:stylesheet version="1.0" id="s" xml:id="s" xmlns:z="http://www.w3.org/1999/XSL/Transform"><z:output method="html"/><z:key name="pkByBattle" match="pk" use="@battle_id"/><z:key name="giById" match="gi" use="concat(@i,'|',@n)"/><z:key name="giftAvatarByUid" match="gift[@a]" use="@uid"/><z:template match="/"><html><meta name="viewport" content="width=device-width"/><title>弹幕文件 <z:value-of select="/i/metadata/user_name/text()"/></title><style>body{margin:0}h1,h2,p,table{margin-left:5px}table{border-spacing:0}td,th{border:1px solid grey;padding:1px 5px}th{position:sticky;top:0;background:#4098de}summary{cursor:pointer;font-weight:bold}tr:hover{background:#d9f4ff}div{overflow:auto;max-height:80vh;max-width:100vw;width:fit-content}img{vertical-align:middle}</style><h1>弹幕XML文件</h1><p>本文件不支持在 IE 浏览器里预览，请使用 Chrome Firefox Edge 等浏览器。</p><p>文件用法参考文档 <a href="https://rec.danmuji.org/user/danmaku/">https://rec.danmuji.org/user/danmaku/</a></p><table><tr><td>房间号</td><td><z:value-of select="/i/metadata/room_id/text()"/></td></tr><tr><td>主播名</td><td><z:value-of select="/i/metadata/user_name/text()"/></td></tr><tr><td><a href="#d">弹幕</a></td><td>共<z:value-of select="count(/i/d)"/>条记录</td></tr><tr><td><a href="#guard">上船</a></td><td>共<z:value-of select="count(/i/guard)"/>条记录</td></tr><tr><td><a href="#sc">SC</a></td><td>共<z:value-of select="count(/i/sc)"/>条记录</td></tr><tr><td><a href="#gift">礼物</a></td><td>共<z:value-of select="count(/i/gift)"/>条记录</td></tr><z:if test="/i/pk"><tr><td><a href="#pk">PK</a></td><td>共<z:value-of select="count(/i/pk)"/>条记录</td></tr></z:if></table><h2 id="d">弹幕</h2><div id="dm"><table><tr><th>用户名</th><th>出现时间</th><th>用户ID</th><th>弹幕</th><th>等级</th><th>粉丝团</th><th>参数</th></tr><z:for-each select="/i/d"><tr><td><z:value-of select="@user"/></td><td></td><td></td><td><z:value-of select="."/></td><td><z:value-of select="@level"/></td><td><z:value-of select="@club_level"/></td><td><z:value-of select="@p"/></td></tr></z:for-each></table></div><script>Array.from(document.querySelectorAll('#dm tr')).slice(1).map(t=>t.querySelectorAll('td')).forEach(t=>{let p=t[6].textContent.split(','),a=p[0];t[1].textContent=\`\u0024{(Math.floor(a/60/60)+'').padStart(2,0)}:\u0024{(Math.floor(a/60%60)+'').padStart(2,0)}:\u0024{(a%60).toFixed(3).padStart(6,0)}\`;t[2].innerHTML=\`&lt;a target=_blank rel="nofollow noreferrer" "&gt;\u0024{p[6]}&lt;/a&gt;\`})</script><h2 id="guard">舰长购买</h2><div><table><tr><th>用户名</th><th>用户ID</th><th>舰长等级</th><th>购买数量</th><th>出现时间</th></tr><z:for-each select="/i/guard"><tr><td><z:value-of select="@user"/></td><td><a rel="nofollow noreferrer"><z:attribute name="href"><z:text></z:text><z:value-of select="@uid" /></z:attribute><z:value-of select="@uid"/></a></td><td><z:value-of select="@level"/></td><td><z:value-of select="@count"/></td><td><z:value-of select="@ts"/></td></tr></z:for-each></table></div><h2 id="sc">SuperChat 醒目留言</h2><div><table><tr><th>用户名</th><th>用户ID</th><th>内容</th><th>显示时长</th><th>价格</th><th>出现时间</th></tr><z:for-each select="/i/sc"><tr><td><z:value-of select="@user"/></td><td><a rel="nofollow noreferrer"><z:attribute name="href"><z:text></z:text><z:value-of select="@uid" /></z:attribute><z:value-of select="@uid"/></a></td><td><z:value-of select="."/></td><td><z:value-of select="@time"/></td><td><z:value-of select="@price"/></td><td><z:value-of select="@ts"/></td></tr></z:for-each></table></div><h2 id="gift">礼物</h2><div><table><tr><th>头像</th><th>用户名</th><th>用户ID</th><th>图标</th><th>礼物名</th><th>礼物数量</th><th>出现时间</th><th>等级</th><th>粉丝团</th></tr><z:for-each select="/i/gift"><tr><td><z:variable name="av" select="key('giftAvatarByUid',@uid)[1]/@a"/><z:if test="string($av)"><z:choose><z:when test="starts-with($av,'webcast/')"><img height="24" loading="lazy" decoding="async" src="https://p3-webcast.douyinpic.com/img/{$av}~tplv-obj.image"/></z:when><z:otherwise><img height="24" loading="lazy" decoding="async" src="https://p11.douyinpic.com/aweme/{$av}.jpeg"/></z:otherwise></z:choose></z:if></td><td><z:value-of select="@user"/></td><td><span rel="nofollow noreferrer"><z:attribute name="href"></z:attribute><z:value-of select="@uid"/></span></td><td><z:variable name="gu" select="key('giById',concat(@giftid,'|',@giftname))/@u"/><z:if test="string($gu)"><z:choose><z:when test="starts-with($gu,'webcast/')"><img height="24" loading="lazy" decoding="async" src="https://p3-webcast.douyinpic.com/img/{$gu}~tplv-obj.image"/></z:when><z:otherwise><img height="24" loading="lazy" decoding="async" src="https://p11.douyinpic.com/aweme/{$gu}.jpeg"/></z:otherwise></z:choose></z:if></td><td><z:value-of select="@giftname"/></td><td><z:value-of select="@giftcount"/></td><td><z:value-of select="@ts"/></td><td><z:value-of select="@level"/></td><td><z:value-of select="@club_level"/></td></tr></z:for-each></table></div><z:if test="/i/pk"><h2 id="pk">PK分数</h2><z:for-each select="/i/pk[generate-id()=generate-id(key('pkByBattle',@battle_id)[1])]"><details><summary>PK 场次 <z:value-of select="position()"/><z:if test="@battle_id"><z:text>（battle_id </z:text><z:value-of select="@battle_id"/><z:text>）</z:text></z:if></summary><div><table><tr><th>PK时间</th><th>主播</th><th>主播ID</th><th>分数</th><th>排名</th><z:if test="player/@team_rank"><th>团队分数</th><th>团队排名</th></z:if></tr><z:for-each select="key('pkByBattle',@battle_id)"><z:for-each select="player"><z:variable name="pkUid" select="@uid"/><tr><td><z:if test="position()=1"><z:value-of select="../@ts"/></z:if></td><td><z:choose><z:when test="/i/pk_users/user[@uid=$pkUid]"><z:value-of select="/i/pk_users/user[@uid=$pkUid]/@nick"/></z:when><z:otherwise><z:value-of select="@uid"/></z:otherwise></z:choose></td><td><z:value-of select="@uid"/></td><td><z:value-of select="@score"/></td><td><z:value-of select="@rank"/></td><z:if test="../player/@team_rank"><td><z:value-of select="@team_score"/></td><td><z:value-of select="@team_rank"/></td></z:if></tr></z:for-each></z:for-each></table></div></details></z:for-each></z:if><z:if test="/i/pk_users"><h2 id="pk_users">PK选手</h2><div id="pk_users_div"><table><tr><th>主播ID</th><th>主播昵称</th></tr><z:for-each select="/i/pk_users/user"><tr><td><z:value-of select="@uid"/></td><td><z:value-of select="@nick"/></td></tr></z:for-each></table></div></z:if></html></z:template></z:stylesheet></RecorderXmlStyle>\n`;
 const DANMA_STATS_INTERVAL = 10;
+
+/** 礼物图标表的一行。键的构成见 {@link giftIconKey}。 */
+interface GiftIconEntry {
+  /**
+   * 键由 `(giftId, name)` 拼成，故 id 必须随 entry 一起存 —— 输出 `<gi i=…>` 时不用再从键里拆。
+   * 同一 giftId 可能出现多行（不同礼物名各一行），所以 `i` 在表内**不唯一**。
+   */
+  giftId: string;
+  name: string;
+  uri: string;
+}
+
+/**
+ * 礼物图标表的键 = `(giftId, 礼物名)`。
+ *
+ * 只用 giftId **不够**，实测两个方向都不是 1:1：
+ * - 同一 giftId → 多个礼物名：`685` 同时是 粉丝团灯牌 / 点点星光 / 闪烁星河；
+ * - 同一礼物名 → 多个 giftId：`点亮粉丝团` 对应 6937 / 6938 / 6939，且三张图标各不相同。
+ *
+ * 单用 id 会让前一种情况的取首见图，单用名字会让后一种情况显示错图，所以两个都要。
+ *
+ * 拼接无歧义：`giftId` 是纯数字（proto 里是整型），不含分隔符 `|`，
+ * 故任意两组不同的 `(id, name)` 拼出的键必不相同，`@n` 是否含 `|` 都不影响这一点。
+ *
+ * ⚠️ XSL 侧用 `concat(@i,'|',@n)` 复现同一个键（见 `XML_FILE_HEADER` 的 `giById`），
+ * 两侧必须同步改；只改一侧时 `key()` 返回空集，图标会**静默全部消失**，不报错。
+ */
+const giftIconKey = (giftId: string, name: string) => `${giftId}|${name}`;
 
 export interface DanmaStatsPayload {
   danmaTimeline: {
@@ -145,17 +173,19 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
   let nicknameProvider: ((uids: string[]) => Promise<Map<string, string>>) | null = null;
 
   /**
-   * 礼物图标首见表：giftId -> { 名, 图标相对路径 }。
+   * 礼物图标首见表：`giftIconKey(giftId, 礼物名)` -> 表项。
    *
    * 一条礼物消息约 145 字符的图标/头像地址，而全场礼物往往只有几十种，
    * 逐条写会把文件撑大数倍（实测 1017 条礼物：逐条 141 KB，建表后 57 KB）。
-   * 故改为「某个 giftId 第一次出现时插入一行 `<gi>` 声明」，XSL 用 `key()` 查回。
+   * 故改为「某对 (giftId, 礼物名) 第一次出现时插入一行 `<gi>` 声明」，XSL 用 `key()` 查回。
+   * 键为什么不是 giftId 单独一个，见 `giftIconKey`。
    *
    * 与 `<pk_users>` 不同，声明是**就地**写的而非集中到末尾：体积相同，但崩溃中断时
    * 已写部分不会丢，流式解析也不需要读完整文件。
    */
-  const giftIcons = new Map<string, { name: string; uri: string }>();
-  /** 用户头像首见表：uid -> 相对路径。`uid -> 头像` 实测严格 1:1，uid 天然就是正确的键。 */
+  const giftIcons = new Map<string, GiftIconEntry>();
+  /** 用户头像首见表：uid -> 相对路径。`uid -> 头像` 实测严格 1:1，uid 天然就是正确的键。
+   * 只用于判断「本场是否已写过」，头像本身就地写在首见礼物的 `@a` 上，不另建 `<ui>` 表。 */
   const userAvatars = new Map<string, string>();
 
   const getStats = (): XmlStreamStats => ({
@@ -215,7 +245,7 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
       }
       // 首见表项只在**写盘成功后**提交：写失败时消息会退回 pendingMessages 重试，
       // 若此时已记进表，重试那次就会认为「已声明过」而漏掉声明行。
-      for (const [id, entry] of newGiftIcons) giftIcons.set(id, entry);
+      for (const [iconKey, entry] of newGiftIcons) giftIcons.set(iconKey, entry);
       for (const [uid, uri] of newUserAvatars) userAvatars.set(uid, uri);
     } catch (error) {
       console.error("写入XML文件失败:", error);
@@ -351,18 +381,18 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
 /**
  * 生成XML内容片段。
  *
- * 除消息节点外，还会为**本批首次出现**的礼物/用户输出一行声明（`<gi>` / `<ui>`），
- * 图片地址因此不必逐条重复。调用方须在写盘成功后把返回的 `new*` 合并进传入的表，
- * 否则写盘失败重试时会漏掉声明行。
+ * 除消息节点外，还会为**本批首次出现**的礼物图标输出一行 `<gi>` 声明，
+ * 图标地址因此不必逐条重复；头像是就地写在「该 uid 首个带头像的礼物」的 `@a` 上。
+ * 调用方须在写盘成功后把返回的 `new*` 合并进传入的表，否则写盘失败重试时会漏掉声明。
  */
 function generateXmlContent(
   metadata: XmlStreamData["meta"],
   messages: Message[],
-  giftIcons: Map<string, { name: string; uri: string }>,
+  giftIcons: Map<string, GiftIconEntry>,
   userAvatars: Map<string, string>,
 ): {
   xml: string;
-  newGiftIcons: Map<string, { name: string; uri: string }>;
+  newGiftIcons: Map<string, GiftIconEntry>;
   newUserAvatars: Map<string, string>;
 } {
   const builder = new XMLBuilder({
@@ -414,8 +444,8 @@ function generateXmlContent(
       ]);
     });
 
-  // 本批首次出现的图标/头像声明。礼物图按 giftId 建表（礼物名不唯一），头像按 uid。
-  const newGiftIcons = new Map<string, { name: string; uri: string }>();
+  // 本批首次出现的图标声明与头像首见记录。礼物图按 (giftId, 礼物名) 建表，头像按 uid。
+  const newGiftIcons = new Map<string, GiftIconEntry>();
   const newUserAvatars = new Map<string, string>();
 
   const gifts = messages
@@ -423,16 +453,27 @@ function generateXmlContent(
     .map((ele) => {
       const progress = Math.max((ele.timestamp - metadata.recordStartTimestamp) / 1000, 0);
       const giftId = ele.giftId ?? "";
+      const giftName = String(ele.name);
       const uid = String(ele?.sender?.uid ?? "");
-      if (giftId && ele.imageUri && !giftIcons.has(giftId)) {
-        newGiftIcons.set(giftId, { name: String(ele.name), uri: ele.imageUri });
+      const iconKey = giftId ? giftIconKey(giftId, giftName) : "";
+      // 「首见」要同时判两张表：`giftIcons` 是跨批已提交的，`newGiftIcons` 是本批的。
+      // 只判前者时，同一批（10 秒窗口）内同一键第二次出现会覆盖首见图，
+      // 是否取到首见就成了 flush 时机的隐式结果。
+      if (iconKey && ele.imageUri && !giftIcons.has(iconKey) && !newGiftIcons.has(iconKey)) {
+        newGiftIcons.set(iconKey, { giftId, name: giftName, uri: ele.imageUri });
       }
-      if (uid && ele.sender?.avatar && !userAvatars.has(uid)) {
+      // 头像就地写在「该 uid 首个带头像的礼物」上，不另建 `<ui>` 表：表项要把 uid 与
+      // `<ui i="" p=""></ui>` 骨架再写一遍（约 39 B/行），而 uid 在这条礼物上本来就有。
+      // 实测 2175 条礼物 / 1791 个用户，建表反而比逐条多占 9.9 KB、比就地写多占 49 KB。
+      // XSL 用 `key('giftAvatarByUid',@uid)[1]` 反查首见，见 `XML_FILE_HEADER`。
+      let avatar = "";
+      if (uid && ele.sender?.avatar && !userAvatars.has(uid) && !newUserAvatars.has(uid)) {
         newUserAvatars.set(uid, ele.sender.avatar);
+        avatar = ele.sender.avatar;
       }
       return {
         "@@ts": progress,
-        "@@giftname": String(ele.name),
+        "@@giftname": giftName,
         "@@giftcount": String(ele.count),
         "@@price": String(ele.price * 1000),
         "@@user": String(ele.sender?.name),
@@ -440,8 +481,10 @@ function generateXmlContent(
         "@@timestamp": String(ele.timestamp),
         "@@level": String(ele?.sender?.extra?.level ?? "0"),
         "@@club_level": String(ele?.sender?.extra?.clubLevel ?? "0"),
-        // 查图标表的键。礼物名不唯一（同名不同 giftId 的图也不同），只能靠 ID 查。
+        // 查图标表的键由 giftid 与 giftname 共同拼成（见 giftIconKey），两个属性缺一不可。
         ...(giftId ? { "@@giftid": giftId } : {}),
+        // 头像只在首见那条上出现，XSL 按 uid 反查（不是逐条都写）。
+        ...(avatar ? { "@@a": avatar } : {}),
       };
     });
 
@@ -506,10 +549,13 @@ function generateXmlContent(
   // 便于流式解析（XSL 用 key() 查表，本身不依赖顺序）。
   const fragment: Record<string, unknown> = {};
   if (newGiftIcons.size > 0) {
-    fragment.gi = [...newGiftIcons].map(([id, e]) => ({ "@@i": id, "@@n": e.name, "@@u": e.uri }));
-  }
-  if (newUserAvatars.size > 0) {
-    fragment.ui = [...newUserAvatars].map(([uid, uri]) => ({ "@@i": uid, "@@p": uri }));
+    // `i` 取 entry 而非 Map 的键：键是拼出来的，且同一 giftId 可能有多行（不同礼物名各一行）。
+    // ⚠️ `n` 是 XSL 侧 key 的组成部分（`concat(@i,'|',@n)`），删掉会让图标全部消失，不是死字段。
+    fragment.gi = [...newGiftIcons].map(([, e]) => ({
+      "@@i": e.giftId,
+      "@@n": e.name,
+      "@@u": e.uri,
+    }));
   }
   Object.assign(fragment, {
     d: comments,
