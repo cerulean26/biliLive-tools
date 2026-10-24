@@ -318,6 +318,49 @@ describe("礼物图标表与头像内联", () => {
     }
   });
 
+  it("头像列/图标列按文档内容条件渲染 —— th 与 td 必须成对，否则关上开关只剩两列空格", async () => {
+    const { controller, savePath, start } = await makeController();
+
+    // 两个开关都关掉的形态：礼物消息既没有 imageUri 也没有 avatar
+    controller.addMessage(gift({ giftId: "6937", timestamp: start }));
+    await controller.flush();
+
+    const xml = await fs.readFile(savePath, "utf8");
+    const section = xml.slice(xml.indexOf('<h2 id="gift">'), xml.indexOf('<h2 id="room">'));
+    // 判据落在「文档里到底有没有」上：整场没有 @a、没有 <gi> 时，两列连表头一起消失
+    // 判据先算成模板顶部变量，这里锁住完整声明：① 位置必须紧跟 template 开头（前向引用会让 XSLT 报错）；
+    // ② `> 0` 这个真值条件写错（例如写成 `= 0`）时全表的列会反过来 —— 静态断言抓不到语义，只能锁文本。
+    expect(xml).toContain(
+      '<z:template match="/">' +
+        '<z:variable name="hasAv" select="count(/i/gift[@a]) &gt; 0"/>' +
+        '<z:variable name="hasGi" select="count(/i/gi) &gt; 0"/>',
+    );
+    const thConds = [...section.matchAll(/<z:if test="([^"]*)"><th>/g)].map((m) => m[1]);
+    const tdConds = [...section.matchAll(/<z:if test="([^"]*)"><td>/g)].map((m) => m[1]);
+    expect(thConds).toEqual(["$hasAv", "$hasGi"]);
+    // 只包 th：表头 7 列、行 9 列，整表错位；只包 td：表头多出两个永远为空的格子
+    expect(tdConds).toEqual(thConds);
+  });
+
+  it("列判据只求值一次 —— 循环体里写文档级路径会让渲染退化成 O(n²)", async () => {
+    const { controller, savePath, start } = await makeController();
+
+    controller.addMessage(
+      gift({ giftId: "6937", imageUri: "webcast/aaa.png", avatar: "aweme/a", timestamp: start }),
+    );
+    await controller.flush();
+
+    const xml = await fs.readFile(savePath, "utf8");
+    const section = xml.slice(xml.indexOf('<h2 id="gift">'), xml.indexOf('<h2 id="room">'));
+    // 实测 3000 条礼物：`test="/i/gift[@a]"` 写在 <td> 上（在 for-each 内）每行重扫全文档，
+    // 渲染 11.7 s；提升为变量后 4.1 s，与不加条件持平。⇒ 循环体里不许出现文档级路径。
+    const from = section.indexOf('<z:for-each select="/i/gift">');
+    const to = section.indexOf("</z:for-each>", from);
+    expect(from).toBeGreaterThan(-1);
+    expect(to).toBeGreaterThan(from);
+    expect(section.slice(from, to)).not.toContain('test="/i/');
+  });
+
   it("生成的 XML 整体合法 —— 样式表是内嵌嵌套 XML，属性写错会毁掉整个文件", async () => {
     const { controller, savePath, start } = await makeController();
 
