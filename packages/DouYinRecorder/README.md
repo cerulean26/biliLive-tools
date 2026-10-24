@@ -41,6 +41,8 @@ interface Options {
   segment?: number | string; // 分段参数，单位分钟，如果以"B","KB","MB","GB"结尾，会尝试使用文件大小分段，仅推荐在使用mesio录制引擎时使用
   disableProvideCommentsWhenRecording?: boolean; // 禁用弹幕录制
   saveGiftDanma?: boolean; // 保存礼物弹幕
+  saveGiftIcon?: boolean; // 保存礼物图标地址（写入 XML 的 gi 表，供预览显示图标），默认 true
+  saveGiftAvatar?: boolean; // 保存送礼用户头像地址（写入 gift 的 a 属性），默认 true
   saveCover?: boolean; // 保存封面
   videoFormat?: "auto"; // 视频格式： "auto", "ts", "mkv" ，auto模式下, 分段使用 "ts"，不分段使用 "mp4"
   useServerTimestamp?: boolean; // 控制弹幕是否使用服务端时间戳，默认为true

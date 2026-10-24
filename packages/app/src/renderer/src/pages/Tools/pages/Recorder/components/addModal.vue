@@ -803,6 +803,34 @@
               >
             </n-form-item>
             <n-form-item
+              v-if="!config.disableProvideCommentsWhenRecording && config.providerId === 'DouYin'"
+            >
+              <template #label>
+                <span class="inline-flex"> 礼物图片 </span>
+              </template>
+              <n-switch
+                v-model:value="config.saveGiftIcon"
+                :disabled="globalFieldsObj.saveGiftIcon || !config.saveGiftDanma"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.saveGiftIcon" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item
+              v-if="!config.disableProvideCommentsWhenRecording && config.providerId === 'DouYin'"
+            >
+              <template #label>
+                <span class="inline-flex"> 送礼用户头像 </span>
+              </template>
+              <n-switch
+                v-model:value="config.saveGiftAvatar"
+                :disabled="globalFieldsObj.saveGiftAvatar || !config.saveGiftDanma"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.saveGiftAvatar" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item
               v-if="
                 !config.disableProvideCommentsWhenRecording &&
                 ['Bilibili', 'DouYu'].includes(config.providerId)
@@ -928,6 +956,8 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     saveGiftDanma: true,
     savePk: true,
     saveRoomStats: true,
+    saveGiftIcon: true,
+    saveGiftAvatar: true,
     saveSCDanma: true,
     saveDanmaStats2DB: true,
     segment: true,
@@ -1058,6 +1088,8 @@ const initGlobalFields = () => {
     saveGiftDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveGiftDanma"),
     savePk: !(config.value?.noGlobalFollowFields ?? []).includes("savePk"),
     saveRoomStats: !(config.value?.noGlobalFollowFields ?? []).includes("saveRoomStats"),
+    saveGiftIcon: !(config.value?.noGlobalFollowFields ?? []).includes("saveGiftIcon"),
+    saveGiftAvatar: !(config.value?.noGlobalFollowFields ?? []).includes("saveGiftAvatar"),
     saveSCDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveSCDanma"),
     saveDanmaStats2DB: !(config.value?.noGlobalFollowFields ?? []).includes("saveDanmaStats2DB"),
     segment: !(config.value?.noGlobalFollowFields ?? []).includes("segment"),
@@ -1139,6 +1171,12 @@ watch(
     }
     if (val.saveRoomStats) {
       config.value.saveRoomStats = appConfig.value.recorder.saveRoomStats;
+    }
+    if (val.saveGiftIcon) {
+      config.value.saveGiftIcon = appConfig.value.recorder.saveGiftIcon;
+    }
+    if (val.saveGiftAvatar) {
+      config.value.saveGiftAvatar = appConfig.value.recorder.saveGiftAvatar;
     }
     if (val.saveSCDanma) {
       config.value.saveSCDanma = appConfig.value.recorder.saveSCDanma;

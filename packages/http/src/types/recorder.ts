@@ -106,6 +106,8 @@ export type UpdateRecorderArgs = Pick<
   | "saveGiftDanma"
   | "savePk"
   | "saveRoomStats"
+  | "saveGiftIcon"
+  | "saveGiftAvatar"
   | "saveSCDanma"
   | "saveDanmaStats2DB"
   | "segment"

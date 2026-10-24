@@ -766,6 +766,30 @@ export function buildPkScoreMessage(
   };
 }
 
+/**
+ * 按「保存礼物图片 / 保存送礼用户头像」两个开关，决定礼物消息上是否带这两项资源路径。
+ *
+ * 关掉时**不采集**（而不是写进 XML 再过滤）：两者只被 XML 生成端消费，不采集即
+ * `<gi>` 表不出现、`gift` 上没有 `a`，预览表格对应列留空（XSL 两列都有 `z:if` 守卫，
+ * 不会输出空 src）。
+ *
+ * 判据用 `!== false` 而不是 `=== true`：老配置里没有这两个键，undefined 必须保持原有行为。
+ * 抽成纯函数是为了可单测 —— 调用点在 `client.on("gift")` 回调里，无法直接覆盖。
+ *
+ * @param imageUri 礼物图标相对路径（`msg.gift.image?.uri`）
+ * @param avatarUri 送礼者头像相对路径（`msg.user.AvatarThumb?.uri`）
+ */
+export function pickGiftAssets(
+  imageUri: string | undefined,
+  avatarUri: string | undefined,
+  options: { saveIcon?: boolean; saveAvatar?: boolean },
+): { imageUri?: string; avatar?: string } {
+  return {
+    ...(options.saveIcon !== false && imageUri ? { imageUri } : {}),
+    ...(options.saveAvatar !== false && avatarUri ? { avatar: avatarUri } : {}),
+  };
+}
+
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
   banLiveId,
@@ -1165,6 +1189,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         ? Number(msg.common.createTime)
         : Number(msg.common.createTime) * 1000;
 
+    // 图片与头像各受一个开关控制，关掉的那项直接不采集（见 pickGiftAssets）
+    const { imageUri, avatar } = pickGiftAssets(msg.gift.image?.uri, msg.user.AvatarThumb?.uri, {
+      saveIcon: this.saveGiftIcon,
+      saveAvatar: this.saveGiftAvatar,
+    });
+
     const gift: GiveGift = {
       type: "give_gift",
       timestamp: this.useServerTimestamp ? serverTimestamp : Date.now(),
@@ -1173,14 +1203,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       count: Number(msg.totalCount ?? 1),
       color: "#ffffff",
       // 只存相对路径（webcast/xxx.png）：CDN 域名与模板参数由消费方拼接，避免域名轮换后数据失效
-      imageUri: msg.gift.image?.uri,
+      ...(imageUri ? { imageUri } : {}),
       // 用 String()：proto 里 giftId 是 uint64，运行时是 Long 对象，不能直接当 number 用
       giftId: String(msg.giftId ?? ""),
       sender: {
         uid: msg.user.id,
         name: msg?.user?.nickName || "unknown",
         // 头像相对路径（100x100/aweme-avatar/xxx，无扩展名），抖音只下发 AvatarThumb
-        avatar: msg.user.AvatarThumb?.uri,
+        ...(avatar ? { avatar } : {}),
         extra: {
           level: msg.user.PayGrade?.level ?? "0",
           clubLevel: msg.user.FansClub?.data?.level ?? "0",

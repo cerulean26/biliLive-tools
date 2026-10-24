@@ -235,6 +235,8 @@ export default class RecorderConfig {
       saveGiftDanma: getValue("saveGiftDanma") ?? false,
       savePk: getValue("savePk") ?? true,
       saveRoomStats: getValue("saveRoomStats") ?? true,
+      saveGiftIcon: getValue("saveGiftIcon") ?? true,
+      saveGiftAvatar: getValue("saveGiftAvatar") ?? true,
       saveSCDanma: getValue("saveSCDanma") ?? true,
       saveDanmaStats2DB: getValue("saveDanmaStats2DB") ?? false,
       saveCover: getValue("saveCover") ?? false,

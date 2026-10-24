@@ -182,7 +182,10 @@
               :unchecked-value="true"
             />
           </n-form-item>
-          <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording">
+          <n-form-item
+            v-if="!config.recorder.disableProvideCommentsWhenRecording"
+            ref="giftDanmaItemRef"
+          >
             <template #label>
               <span class="inline-flex"> 保存礼物 </span>
             </template>
@@ -661,6 +664,31 @@
               :disabled="config.recorder.disableProvideCommentsWhenRecording"
             />
           </n-form-item>
+          <div v-if="giftAssetsHintVisible" class="disabled-hint">
+            需先在<span class="goto-link" @click="gotoGiftDanmaSetting">「基础设置」</span
+            >开启「保存礼物」，否则以下两项收不到礼物数据
+          </div>
+          <n-form-item :class="{ 'form-item-disabled': giftAssetsDisabled }">
+            <template #label>
+              <Tip
+                text="礼物图片"
+                tip="把礼物图标地址记录到 XML，供录制预览显示。关闭后预览的礼物表「图标」列为空"
+              ></Tip>
+            </template>
+            <n-switch v-model:value="config.recorder.saveGiftIcon" :disabled="giftAssetsDisabled" />
+          </n-form-item>
+          <n-form-item :class="{ 'form-item-disabled': giftAssetsDisabled }">
+            <template #label>
+              <Tip
+                text="送礼用户头像"
+                tip="把送礼者头像地址记录到 XML，供录制预览显示。关闭后预览的礼物表「头像」列为空"
+              ></Tip>
+            </template>
+            <n-switch
+              v-model:value="config.recorder.saveGiftAvatar"
+              :disabled="giftAssetsDisabled"
+            />
+          </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="xhs" tab="小红书" display-directive="show:lazy">
           <h3 style="margin-bottom: 10px">设置Cookie可自动监听，建议使用小号</h3>
@@ -896,6 +924,26 @@ const gotoCommentRecordSetting = async () => {
   activeTab.value = "common-setting";
   await nextTick();
   const el = commentRecordItemRef.value?.$el as HTMLElement | undefined;
+  el?.scrollIntoView({ behavior: "smooth", block: "center" });
+};
+
+// 礼物图片与送礼头像都来自礼物消息 —— 弹幕录制或「保存礼物」任一关闭都无从采集
+const giftAssetsDisabled = computed(
+  () =>
+    config.value.recorder.disableProvideCommentsWhenRecording === true ||
+    config.value.recorder.saveGiftDanma === false,
+);
+// 弹幕录制已关时不必再提示「保存礼物」：前置条件本身就不成立
+const giftAssetsHintVisible = computed(
+  () =>
+    config.value.recorder.disableProvideCommentsWhenRecording !== true &&
+    config.value.recorder.saveGiftDanma === false,
+);
+const giftDanmaItemRef = templateRef("giftDanmaItemRef");
+const gotoGiftDanmaSetting = async () => {
+  activeTab.value = "common-setting";
+  await nextTick();
+  const el = giftDanmaItemRef.value?.$el as HTMLElement | undefined;
   el?.scrollIntoView({ behavior: "smooth", block: "center" });
 };
 

@@ -155,6 +155,20 @@ const globalFollowCases = [
     providerIds: allProviderIds,
   },
   {
+    title: "礼物图片：saveGiftIcon",
+    key: "saveGiftIcon",
+    globalValue: true,
+    localValue: false,
+    providerIds: allProviderIds,
+  },
+  {
+    title: "送礼者头像：saveGiftAvatar",
+    key: "saveGiftAvatar",
+    globalValue: false,
+    localValue: true,
+    providerIds: allProviderIds,
+  },
+  {
     title: "服务端时间戳：useServerTimestamp",
     key: "useServerTimestamp",
     globalValue: false,
@@ -264,6 +278,22 @@ describe("RecorderConfig", () => {
       });
 
       expect(recorderConfig.get("dy")?.saveRoomStats).toBe(true);
+    });
+
+    it("礼物图片/送礼者头像：全局配置缺键时回退为 true（老配置升级后仍带图）", () => {
+      mockAppConfig.get.mockImplementation((key: string) => {
+        if (key === "recorder") {
+          return {};
+        }
+        if (key === "recorders") {
+          return [{ id: "dy", providerId: "DouYin", channelId: "1" }];
+        }
+        return null;
+      });
+
+      const cfg = recorderConfig.get("dy");
+      expect(cfg?.saveGiftIcon).toBe(true);
+      expect(cfg?.saveGiftAvatar).toBe(true);
     });
 
     describe("流编码：codecName", () => {

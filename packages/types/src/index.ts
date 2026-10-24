@@ -62,6 +62,8 @@ export const recorderNoGlobalFollowFields: Array<
   "saveSCDanma",
   "savePk",
   "saveRoomStats",
+  "saveGiftIcon",
+  "saveGiftAvatar",
   "saveDanmaStats2DB",
   "segment",
   "uid",
@@ -484,6 +486,10 @@ export interface GlobalRecorder {
   savePk?: boolean;
   /** 保存在线人数（仅抖音） */
   saveRoomStats?: boolean;
+  /** 保存礼物图标（仅抖音，写入 XML 的 `gi` 表） */
+  saveGiftIcon?: boolean;
+  /** 保存送礼用户头像（仅抖音，写入 `gift` 的 `a` 属性） */
+  saveGiftAvatar?: boolean;
   /** 保存高能弹幕 */
   saveSCDanma?: boolean;
   /** 弹幕是否使用服务端时间戳 */
@@ -559,6 +565,10 @@ export interface Recorder {
   savePk?: boolean;
   /** 保存在线人数（仅抖音） */
   saveRoomStats?: boolean;
+  /** 保存礼物图标（仅抖音，写入 XML 的 `gi` 表） */
+  saveGiftIcon?: boolean;
+  /** 保存送礼用户头像（仅抖音，写入 `gift` 的 `a` 属性） */
+  saveGiftAvatar?: boolean;
   /** 弹幕是否使用服务端时间戳 */
   useServerTimestamp: boolean;
   /** 保存高能弹幕 */

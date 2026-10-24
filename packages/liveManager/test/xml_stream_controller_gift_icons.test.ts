@@ -28,9 +28,12 @@ function gift(overrides: {
   name?: string;
   imageUri?: string;
   uid?: string;
+  /** 送礼人昵称，默认按 uid 生成；匿名 uid 场景需要显式区分 */
+  senderName?: string;
   avatar?: string;
   timestamp: number;
 }) {
+  const uid = overrides.uid ?? "1001";
   return {
     type: "give_gift" as const,
     timestamp: overrides.timestamp,
@@ -41,8 +44,8 @@ function gift(overrides: {
     imageUri: overrides.imageUri,
     giftId: overrides.giftId,
     sender: {
-      uid: overrides.uid ?? "1001",
-      name: "user" + (overrides.uid ?? "1001"),
+      uid,
+      name: overrides.senderName ?? "user" + uid,
       avatar: overrides.avatar,
     },
   };
@@ -67,7 +70,7 @@ const giftRows = (xml: string) =>
     return attrs;
   });
 
-/** 带 `a`（头像）的礼物行 —— 正常情况每个 uid 只有一条。 */
+/** 带 `a`（头像）的礼物行 —— 正常情况每个 (uid, 昵称) 只有一条。 */
 const avatarRows = (xml: string) => giftRows(xml).filter((r) => r.a);
 
 describe("礼物图标表与头像内联", () => {
@@ -305,10 +308,10 @@ describe("礼物图标表与头像内联", () => {
     await controller.flush();
 
     const xml = await fs.readFile(savePath, "utf8");
-    // img 只出现在内嵌样式表的模板里，共 4 个分支：头像(webcast/aweme) + 图标(webcast/aweme)。
-    // 固定为 4 是有意的：将来新增分支却漏加 lazy 时，这里会红。
+    // img 只出现在内嵌样式表的模板里，共 5 个分支：头像(webcast / aweme-avatar 缺尺寸 / aweme)
+    // + 图标(webcast / aweme)。固定为 5 是有意的：将来新增分支却漏加 lazy 时，这里会红。
     const imgs = xml.match(/<img[^>]*>/g) ?? [];
-    expect(imgs).toHaveLength(4);
+    expect(imgs).toHaveLength(5);
     for (const tag of imgs) {
       expect(tag).toContain('loading="lazy"');
       expect(tag).toContain('decoding="async"');
@@ -350,7 +353,7 @@ describe("礼物图标表与头像内联", () => {
     expect(rows.map((r) => r.a).sort()).toEqual(["aweme/a", "aweme/b"]);
   });
 
-  it("同一用户第二次送礼不再写头像，但 uid 仍在 —— XSL 按 uid 反查首见", async () => {
+  it("同一用户第二次送礼不再写头像，但 uid 仍在 —— XSL 按 (uid, 昵称) 反查首见", async () => {
     const { controller, savePath, start } = await makeController();
 
     controller.addMessage(gift({ giftId: "1", uid: "1001", avatar: "aweme/a", timestamp: start }));
@@ -362,14 +365,120 @@ describe("礼物图标表与头像内联", () => {
     const xml = await fs.readFile(savePath, "utf8");
     const rows = giftRows(xml);
     expect(rows).toHaveLength(2);
-    // 只有第一条带头像；第二条靠 @uid 在 XSL 里反查，uid 因此不能省
+    // 只有第一条带头像；第二条靠 (@uid,@user) 在 XSL 里反查，uid 与 user 因此都不能省
     expect(rows[0].a).toBe("aweme/a");
     expect(rows[1].a).toBeUndefined();
     expect(rows[1].uid).toBe("1001");
     // 定义与查询必须同步：match 的属性名与取值、[1] 取文档序首见
-    expect(xml).toContain(`<z:key name="giftAvatarByUid" match="gift[@a]" use="@uid"/>`);
-    expect(xml).toContain("key('giftAvatarByUid',@uid)[1]/@a");
+    expect(xml).toContain(
+      `<z:key name="giftAvatarByUser" match="gift[@a]" use="concat(@uid,'|',@user)"/>`,
+    );
+    expect(xml).toContain("key('giftAvatarByUser',concat(@uid,'|',@user))[1]/@a");
     expect(xml).not.toContain("uiByUid");
+  });
+
+  it("匿名占位 uid 下的不同昵称各写一次头像 —— 键必须是 (uid, 昵称) 而不是 uid", async () => {
+    const { controller, savePath, start } = await makeController();
+
+    // 实测：抖音匿名身份共用 uid 111111，同一份录制里 dou7702128 / 神秘人397543 / dou1669765
+    // 三个互不相干的昵称都用它。按 uid 去重会让后两个身份的头像被丢弃，再经反查显示成首条那个人。
+    controller.addMessage(
+      gift({
+        giftId: "1",
+        uid: "111111",
+        senderName: "dou7702128",
+        avatar: "aweme/a",
+        timestamp: start,
+      }),
+    );
+    controller.addMessage(
+      gift({
+        giftId: "1",
+        uid: "111111",
+        senderName: "神秘人397543",
+        avatar: "aweme/b",
+        timestamp: start + 1,
+      }),
+    );
+    controller.addMessage(
+      gift({
+        giftId: "1",
+        uid: "111111",
+        senderName: "神秘人397543",
+        avatar: "aweme/b",
+        timestamp: start + 2,
+      }),
+    );
+    controller.addMessage(
+      gift({
+        giftId: "1",
+        uid: "111111",
+        senderName: "dou1669765",
+        avatar: "aweme/c",
+        timestamp: start + 3,
+      }),
+    );
+    await controller.flush();
+
+    const xml = await fs.readFile(savePath, "utf8");
+    const rows = giftRows(xml);
+    // 4 条礼物都在，uid 相同不影响消息本身
+    expect(rows).toHaveLength(4);
+    expect(rows.map((r) => r.uid)).toEqual(["111111", "111111", "111111", "111111"]);
+    // 三个昵称各占首条：a b 空（同昵称第二次） c
+    expect(rows.map((r) => r.a)).toEqual(["aweme/a", "aweme/b", undefined, "aweme/c"]);
+    expect(rows.map((r) => r.user)).toEqual([
+      "dou7702128",
+      "神秘人397543",
+      "神秘人397543",
+      "dou1669765",
+    ]);
+  });
+
+  it("XSL 对缺尺寸段的头像有兜底分支 —— 匿名头像是 aweme-avatar/ 开头，直接拼会 400", async () => {
+    const { controller, savePath, start } = await makeController();
+
+    // 实测：匿名用户（uid 111111）下发的 uri 是 aweme-avatar/mosaic-legacy_…，缺 100x100/ 尺寸段。
+    // 直接按 aweme/{uri}.jpeg 拼会得到 400 {"code":2004}，必须补尺寸段走 100x100/ 前缀。
+    controller.addMessage(
+      gift({
+        giftId: "1",
+        uid: "111111",
+        avatar: "aweme-avatar/mosaic-legacy_3795_1",
+        timestamp: start,
+      }),
+    );
+    await controller.flush();
+
+    const xml = await fs.readFile(savePath, "utf8");
+    expect(xml).toContain(`<z:when test="starts-with($av,'aweme-avatar/')">`);
+    expect(xml).toContain("https://p11.douyinpic.com/aweme/100x100/{$av}.jpeg");
+    // 兜底分支必须排在 otherwise 之前，否则永远走不到。注意不能只比「在 webcast 分支之后」——
+    // 那样把它挪到 otherwise 之后也照样通过（实测是死断言）。
+    const webcastBranch = xml.indexOf(`<z:when test="starts-with($av,'webcast/')">`);
+    const backfillBranch = xml.indexOf(`<z:when test="starts-with($av,'aweme-avatar/')">`);
+    const otherwiseBranch = xml.indexOf(`https://p11.douyinpic.com/aweme/{$av}.jpeg`);
+    expect(webcastBranch).toBeGreaterThan(0);
+    expect(otherwiseBranch).toBeGreaterThan(0);
+    expect(backfillBranch).toBeGreaterThan(webcastBranch);
+    expect(backfillBranch).toBeLessThan(otherwiseBranch);
+  });
+
+  it("同一 (uid, 昵称) 换头像仍取首见 —— 复合键不解决改名换图", async () => {
+    const { controller, savePath, start } = await makeController();
+
+    controller.addMessage(
+      gift({ giftId: "1", uid: "1001", avatar: "aweme/first", timestamp: start }),
+    );
+    controller.addMessage(
+      gift({ giftId: "2", uid: "1001", avatar: "aweme/second", timestamp: start + 1 }),
+    );
+    await controller.flush();
+
+    const xml = await fs.readFile(savePath, "utf8");
+    // 键相同时「首见即定」是策略边界，锁住它，避免误以为改键就能让头像跟着换
+    expect(avatarRows(xml)).toHaveLength(1);
+    expect(avatarRows(xml)[0].a).toBe("aweme/first");
   });
 
   it("首条没下发头像时，头像写在第二条上（首见 = 首个带头像的节点）", async () => {

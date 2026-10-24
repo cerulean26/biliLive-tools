@@ -50,6 +50,8 @@ export function defaultToJSON<E extends AnyObject>(
       "saveGiftDanma",
       "savePk",
       "saveRoomStats",
+      "saveGiftIcon",
+      "saveGiftAvatar",
       "disableProvideCommentsWhenRecording",
       "liveInfo",
       "uid",
