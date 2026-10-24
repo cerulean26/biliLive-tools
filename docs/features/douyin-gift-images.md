@@ -142,38 +142,65 @@ XSL 侧用 `concat(@i,'|',@n)` 建索引，与 `<gift>` 上的 `concat(@giftid,'
 
 抖音的图片有三类前缀，规则不同：
 
-| 相对路径前缀                | 完整 URL                                                       |
-| --------------------------- | -------------------------------------------------------------- |
-| `webcast/`                  | `https://p11.douyinpic.com/aweme/100x100/<u>`（u 自带 `.png`） |
-| `aweme-avatar/`（缺尺寸段） | `https://p11.douyinpic.com/aweme/100x100/<u>.jpeg`             |
-| 其他（含 `100x100/…`）      | `https://p11.douyinpic.com/aweme/<u>.jpeg`                     |
+| 相对路径前缀                | 头像（`<gift a>`）                                           | 图标（`<gi u>`）                                         |
+| --------------------------- | ------------------------------------------------------------ | -------------------------------------------------------- |
+| `webcast/`                  | `https://p11.douyinpic.com/aweme/100x100/<u>`（自带 `.png`） | `https://p3-webcast.douyinpic.com/img/<u>~tplv-obj.webp` |
+| `aweme-avatar/`（缺尺寸段） | `https://p11.douyinpic.com/aweme/100x100/<u>.jpeg`           | 不出现                                                   |
+| 其他（含 `100x100/…`）      | `https://p11.douyinpic.com/aweme/<u>.jpeg`                   | `https://p11.douyinpic.com/aweme/<u>.jpeg`               |
 
 礼物图标实测全部是 `webcast/` 开头。头像多数是 `100x100/aweme-avatar/…`（走 `p11`），偶尔是 `webcast/`；**匿名头像还会缺尺寸段**，直接下发 `aweme-avatar/mosaic-legacy_…` —— 这时按「其他」拼成 `…/aweme/aweme-avatar/…jpeg` 会返回 **400 `{"code":2004}`**（破图），必须补上 `100x100/` 段才 200。三类前缀都要判断。
 
-`webcast/` 前缀**不要**用 `p3-webcast.douyinpic.com/img/<u>~tplv-obj.image`：那个模板给的是**原图**（头像 282×282 / 38,986 B，礼物图标 168–280 px / 16–109 KB），而显示区只有 24 px。改拼 `p11` 的 `aweme/100x100/` 段即可拿到缩略图，实测：
+### 为什么头像和图标要走不同 CDN —— 透明通道
 
-|                              | 原图模板                | `aweme/100x100/`                                     |
-| ---------------------------- | ----------------------- | ---------------------------------------------------- |
-| `webcast/` 头像              | 38,986 B（282×282 PNG） | **3,483 B**（100×100 JPEG）                          |
-| 20 个礼物图标合计            | 1,008,999 B             | **116,254 B**（源带 alpha ⇒ CDN 返回 PNG，透明保留） |
-| 一份产物 127 个唯一 URL 合计 | 1,347,289 B             | **454,544 B**（-66.3%）                              |
+礼物图标的源图 **20/20 是 RGBA**（逐像素统计，透明像素占 37%–80%）。p11 的 `100x100` 会把其中 **15 个转成 JPEG**，而 **JPEG 没有 alpha**，透明区被填成**纯黑方块** —— 在浅色表格里非常显眼。所以图标改走 p3 的 `~tplv-obj.webp`：实测 **20/20 保留 alpha**（全部返回带 ALPH 块的 VP8X）。
 
-注意 `webcast/` 的 uri 自带扩展名（`.png`），**不要再补 `.jpeg`**（补了也能出图，但会拼出 `x.png.jpeg`）；而 `aweme-avatar/` 的 uri 没有扩展名，必须补 `.jpeg`。另外 48×48 这类尺寸档不存在（400），`100x100` / `200x200` 可用。
+头像不受这个约束：源图是调色板且无 `tRNS`（本来就不透明），用 p11 只要 3,483 B，换成 webp 反而要 12,666 B。
+
+| 20 个礼物图标合计      | 字节          | 透明                     |
+| ---------------------- | ------------- | ------------------------ |
+| 原图 `~tplv-obj.image` | 1,008,999 B   | 20/20（但 168–280 px）   |
+| p11 `aweme/100x100/`   | **116,254 B** | **仅 5/20**（15 个黑底） |
+| p3 `~tplv-obj.webp`    | 174,252 B     | **20/20** ✅             |
+
+采用组合（头像 p11 + 图标 webp）后，真实产物 322 个 img / 127 个唯一 URL：**原图 1,347,289 B → 512,542 B（-62%）**，全部 200。比「头像图标都用 p11」的 454,544 B 多 12.8%，换来图标不出现黑底。
+
+⚠️ `~tplv-obj.<ext>` 只决定**输出格式**，**不缩放**：`.png` 返回的字节与 `.image` 完全一致（md5 相同），`.webp` / `.jpeg` 也只是换编码、像素仍是原尺寸。真正能缩图的只有路径里的尺寸段（`100x100` / `200x200`；`48x48` 不存在，会 400）。
+
+注意 `webcast/` 的 uri 自带扩展名（`.png`），**不要再补 `.jpeg`**；而 `aweme-avatar/` 的 uri 没有扩展名，必须补 `.jpeg`。
 
 XSL 里的写法（已实测）：
 
+**头像**（`$av`，三分支）：
+
 ```xml
-<z:variable name="u" select="key('giById',concat(@giftid,'|',@giftname))/@u"/>
-<z:if test="string($u)">
+<z:variable name="av" select="key('giftAvatarByUser',concat(@uid,'|',@user))[1]/@a"/>
+<z:if test="string($av)">
   <z:choose>
-    <z:when test="starts-with($u,'webcast/')">
-      <img height="24" loading="lazy" decoding="async" onerror="this.remove()" src="https://p11.douyinpic.com/aweme/100x100/{$u}"/>
+    <z:when test="starts-with($av,'webcast/')">
+      <img height="24" loading="lazy" decoding="async" onerror="this.remove()" src="https://p11.douyinpic.com/aweme/100x100/{$av}"/>
     </z:when>
-    <z:when test="starts-with($u,'aweme-avatar/')">
-      <img height="24" loading="lazy" decoding="async" onerror="this.remove()" src="https://p11.douyinpic.com/aweme/100x100/{$u}.jpeg"/>
+    <!-- 必须在 otherwise 之前：缺尺寸段时按 otherwise 拼是 400 -->
+    <z:when test="starts-with($av,'aweme-avatar/')">
+      <img height="24" loading="lazy" decoding="async" onerror="this.remove()" src="https://p11.douyinpic.com/aweme/100x100/{$av}.jpeg"/>
     </z:when>
     <z:otherwise>
-      <img height="24" loading="lazy" decoding="async" onerror="this.remove()" src="https://p11.douyinpic.com/aweme/{$u}.jpeg"/>
+      <img height="24" loading="lazy" decoding="async" onerror="this.remove()" src="https://p11.douyinpic.com/aweme/{$av}.jpeg"/>
+    </z:otherwise>
+  </z:choose>
+</z:if>
+```
+
+**图标**（`$gu`，两分支 —— 走 webp 而不是 p11，为了保住透明）：
+
+```xml
+<z:variable name="gu" select="key('giById',concat(@giftid,'|',@giftname))/@u"/>
+<z:if test="string($gu)">
+  <z:choose>
+    <z:when test="starts-with($gu,'webcast/')">
+      <img height="24" loading="lazy" decoding="async" onerror="this.remove()" src="https://p3-webcast.douyinpic.com/img/{$gu}~tplv-obj.webp"/>
+    </z:when>
+    <z:otherwise>
+      <img height="24" loading="lazy" decoding="async" onerror="this.remove()" src="https://p11.douyinpic.com/aweme/{$gu}.jpeg"/>
     </z:otherwise>
   </z:choose>
 </z:if>

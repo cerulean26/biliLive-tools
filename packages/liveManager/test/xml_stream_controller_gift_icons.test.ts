@@ -358,7 +358,7 @@ describe("礼物图标表与头像内联", () => {
     }
   });
 
-  it("webcast/ 前缀改走 p11 的 100x100 缩略图 —— 原图对 24px 显示区是十几倍开销", async () => {
+  it("webcast/ 前缀：头像走 p11 缩略图、图标走 p3 的 webp —— 前者省体积，后者保透明", async () => {
     const { controller, savePath, start } = await makeController();
 
     controller.addMessage(
@@ -372,14 +372,16 @@ describe("礼物图标表与头像内联", () => {
     await controller.flush();
 
     const xml = await fs.readFile(savePath, "utf8");
-    // 实测：p3-webcast 的 `~tplv-obj.image` 给的是原图 —— 头像 282×282 / 38,986 B，
-    // 礼物图标 168–280 px / 16–109 KB（一份产物 20 个图标合计 1,008,999 B）。
-    // 换成 p11 的 100x100 段后：头像 3,483 B（JPEG，11.2×），图标合计 116,254 B（8.7×，源带 alpha 时
-    // CDN 返回 PNG，透明保留），两者全部 200，100 px 对 24 px 显示区仍有 4× 余量。
+    // 头像：源图是调色板且无 tRNS（本来就不透明），p11 的 100x100 只要 3,483 B
+    // （p3 原图 282×282 / 38,986 B，11.2×），100 px 对 24 px 显示区仍有 4× 余量。
     expect(xml).toContain('src="https://p11.douyinpic.com/aweme/100x100/{$av}"');
-    expect(xml).toContain('src="https://p11.douyinpic.com/aweme/100x100/{$gu}"');
-    // 原图模板整体不许再出现在产物里，避免有人只改一处、另一处继续拉原图
-    expect(xml).not.toContain("p3-webcast.douyinpic.com");
+    // 图标：20/20 源图是 RGBA（透明像素 37%–80%），p11 的 100x100 会把其中 **15 个** 转成
+    // JPEG —— JPEG 没有 alpha，透明区被填成纯黑方块。改走 p3 的 ~tplv-obj.webp：
+    // 实测 20/20 保留 alpha，合计 174,252 B（原图合计 1,008,999 B，5.8×）。
+    expect(xml).toContain('src="https://p3-webcast.douyinpic.com/img/{$gu}~tplv-obj.webp"');
+    // 反向护栏：防止有人只改一处、或把两个分支改回同一套 URL
+    expect(xml).not.toContain("100x100/{$gu}");
+    expect(xml).not.toContain("{$av}~tplv-obj");
     expect(xml).not.toContain("~tplv-obj.image");
   });
 
