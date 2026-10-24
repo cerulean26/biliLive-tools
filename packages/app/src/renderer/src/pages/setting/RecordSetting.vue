@@ -6,7 +6,7 @@
     </div>
 
     <n-form label-placement="left" :label-width="labelWidth">
-      <n-tabs type="segment" style="margin-top: 10px" class="tabs">
+      <n-tabs v-model:value="activeTab" type="segment" style="margin-top: 10px" class="tabs">
         <n-tab-pane
           class="tab-pane"
           name="common-setting"
@@ -172,7 +172,7 @@
           </n-form-item>
 
           <h3>弹幕</h3>
-          <n-form-item>
+          <n-form-item ref="commentRecordItemRef">
             <template #label>
               <span class="inline-flex"> 弹幕录制 </span>
             </template>
@@ -628,7 +628,15 @@
 
           <div class="divider"></div>
           <h3>弹幕</h3>
-          <n-form-item>
+          <div v-if="config.recorder.disableProvideCommentsWhenRecording" class="disabled-hint">
+            需先在<span class="goto-link" @click="gotoCommentRecordSetting">「基础设置」</span
+            >开启「弹幕录制」，否则以下开关收不到弹幕数据
+          </div>
+          <n-form-item
+            :class="{
+              'form-item-disabled': config.recorder.disableProvideCommentsWhenRecording,
+            }"
+          >
             <template #label>
               <span class="inline-flex"> 保存PK分数 </span>
             </template>
@@ -637,7 +645,11 @@
               :disabled="config.recorder.disableProvideCommentsWhenRecording"
             />
           </n-form-item>
-          <n-form-item>
+          <n-form-item
+            :class="{
+              'form-item-disabled': config.recorder.disableProvideCommentsWhenRecording,
+            }"
+          >
             <template #label>
               <Tip
                 text="在线人数"
@@ -649,9 +661,6 @@
               :disabled="config.recorder.disableProvideCommentsWhenRecording"
             />
           </n-form-item>
-          <div v-if="config.recorder.disableProvideCommentsWhenRecording" class="disabled-hint">
-            需先在「基础设置」中开启「弹幕录制」，这两项才会生效
-          </div>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="xhs" tab="小红书" display-directive="show:lazy">
           <h3 style="margin-bottom: 10px">设置Cookie可自动监听，建议使用小号</h3>
@@ -879,6 +888,17 @@ const { userList } = storeToRefs(useUserInfoStore());
 const { userList: douyuUserList } = storeToRefs(useDouyuUserStore());
 const isWeb = computed(() => window.isWeb);
 
+// 用于「基础设置」与平台页之间的守卫提示跳转；默认值与 n-tabs 原默认选中项一致
+const activeTab = ref("common-setting");
+const commentRecordItemRef = templateRef("commentRecordItemRef");
+// 前置条件开关在「基础设置」页中部，只切页不滚动的话用户还得自己找
+const gotoCommentRecordSetting = async () => {
+  activeTab.value = "common-setting";
+  await nextTick();
+  const el = commentRecordItemRef.value?.$el as HTMLElement | undefined;
+  el?.scrollIntoView({ behavior: "smooth", block: "center" });
+};
+
 const selectFolder = async () => {
   let file: string | undefined = await showDirectoryDialog({
     defaultPath: config.value.recorder.savePath,
@@ -1076,7 +1096,23 @@ h3 {
 // 开关因前置条件未满足而禁用时的说明，避免用户以为是故障
 .disabled-hint {
   font-size: 12px;
-  opacity: 0.6;
+  opacity: 0.75;
   padding-left: 2px;
+  margin: 2px 0 8px;
+
+  .goto-link {
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+
+    &:hover {
+      text-decoration-thickness: 2px;
+    }
+  }
+}
+
+// 禁用态连同 label 一起降透明度，否则会出现「标题清晰、开关点不动」的割裂感
+.form-item-disabled {
+  opacity: 0.5;
 }
 </style>
