@@ -138,13 +138,23 @@ XSL 侧用 `concat(@i,'|',@n)` 建索引，与 `<gift>` 上的 `concat(@giftid,'
 
 抖音的图片有三类前缀，规则不同：
 
-| 相对路径前缀                | 完整 URL                                                  |
-| --------------------------- | --------------------------------------------------------- |
-| `webcast/`                  | `https://p3-webcast.douyinpic.com/img/<u>~tplv-obj.image` |
-| `aweme-avatar/`（缺尺寸段） | `https://p11.douyinpic.com/aweme/100x100/<u>.jpeg`        |
-| 其他（含 `100x100/…`）      | `https://p11.douyinpic.com/aweme/<u>.jpeg`                |
+| 相对路径前缀                | 完整 URL                                                       |
+| --------------------------- | -------------------------------------------------------------- |
+| `webcast/`                  | `https://p11.douyinpic.com/aweme/100x100/<u>`（u 自带 `.png`） |
+| `aweme-avatar/`（缺尺寸段） | `https://p11.douyinpic.com/aweme/100x100/<u>.jpeg`             |
+| 其他（含 `100x100/…`）      | `https://p11.douyinpic.com/aweme/<u>.jpeg`                     |
 
 礼物图标实测全部是 `webcast/` 开头。头像多数是 `100x100/aweme-avatar/…`（走 `p11`），偶尔是 `webcast/`；**匿名头像还会缺尺寸段**，直接下发 `aweme-avatar/mosaic-legacy_…` —— 这时按「其他」拼成 `…/aweme/aweme-avatar/…jpeg` 会返回 **400 `{"code":2004}`**（破图），必须补上 `100x100/` 段才 200。三类前缀都要判断。
+
+`webcast/` 前缀**不要**用 `p3-webcast.douyinpic.com/img/<u>~tplv-obj.image`：那个模板给的是**原图**（头像 282×282 / 38,986 B，礼物图标 168–280 px / 16–109 KB），而显示区只有 24 px。改拼 `p11` 的 `aweme/100x100/` 段即可拿到缩略图，实测：
+
+|                              | 原图模板                | `aweme/100x100/`                                     |
+| ---------------------------- | ----------------------- | ---------------------------------------------------- |
+| `webcast/` 头像              | 38,986 B（282×282 PNG） | **3,483 B**（100×100 JPEG）                          |
+| 20 个礼物图标合计            | 1,008,999 B             | **116,254 B**（源带 alpha ⇒ CDN 返回 PNG，透明保留） |
+| 一份产物 127 个唯一 URL 合计 | 1,347,289 B             | **454,544 B**（-66.3%）                              |
+
+注意 `webcast/` 的 uri 自带扩展名（`.png`），**不要再补 `.jpeg`**（补了也能出图，但会拼出 `x.png.jpeg`）；而 `aweme-avatar/` 的 uri 没有扩展名，必须补 `.jpeg`。另外 48×48 这类尺寸档不存在（400），`100x100` / `200x200` 可用。
 
 XSL 里的写法（已实测）：
 
@@ -153,7 +163,7 @@ XSL 里的写法（已实测）：
 <z:if test="string($u)">
   <z:choose>
     <z:when test="starts-with($u,'webcast/')">
-      <img height="24" loading="lazy" decoding="async" onerror="this.remove()" src="https://p3-webcast.douyinpic.com/img/{$u}~tplv-obj.image"/>
+      <img height="24" loading="lazy" decoding="async" onerror="this.remove()" src="https://p11.douyinpic.com/aweme/100x100/{$u}"/>
     </z:when>
     <z:when test="starts-with($u,'aweme-avatar/')">
       <img height="24" loading="lazy" decoding="async" onerror="this.remove()" src="https://p11.douyinpic.com/aweme/100x100/{$u}.jpeg"/>

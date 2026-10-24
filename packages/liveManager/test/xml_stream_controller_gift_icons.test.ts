@@ -320,6 +320,31 @@ describe("礼物图标表与头像内联", () => {
     }
   });
 
+  it("webcast/ 前缀改走 p11 的 100x100 缩略图 —— 原图对 24px 显示区是十几倍开销", async () => {
+    const { controller, savePath, start } = await makeController();
+
+    controller.addMessage(
+      gift({
+        giftId: "6937",
+        imageUri: "webcast/aaa.png",
+        avatar: "webcast/av.png",
+        timestamp: start,
+      }),
+    );
+    await controller.flush();
+
+    const xml = await fs.readFile(savePath, "utf8");
+    // 实测：p3-webcast 的 `~tplv-obj.image` 给的是原图 —— 头像 282×282 / 38,986 B，
+    // 礼物图标 168–280 px / 16–109 KB（一份产物 20 个图标合计 1,008,999 B）。
+    // 换成 p11 的 100x100 段后：头像 3,483 B（JPEG，11.2×），图标合计 116,254 B（8.7×，源带 alpha 时
+    // CDN 返回 PNG，透明保留），两者全部 200，100 px 对 24 px 显示区仍有 4× 余量。
+    expect(xml).toContain('src="https://p11.douyinpic.com/aweme/100x100/{$av}"');
+    expect(xml).toContain('src="https://p11.douyinpic.com/aweme/100x100/{$gu}"');
+    // 原图模板整体不许再出现在产物里，避免有人只改一处、另一处继续拉原图
+    expect(xml).not.toContain("p3-webcast.douyinpic.com");
+    expect(xml).not.toContain("~tplv-obj.image");
+  });
+
   it("头像列/图标列按文档内容条件渲染 —— th 与 td 必须成对，否则关上开关只剩两列空格", async () => {
     const { controller, savePath, start } = await makeController();
 
