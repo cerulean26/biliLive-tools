@@ -103,4 +103,27 @@ export interface RoomStats {
   online: string;
 }
 
-export type Message = Comment | GiveGift | SuperChat | Guard | PkScore | RoomStats;
+/**
+ * 直播间贡献榜（前三名）快照。
+ *
+ * 取自 `WebcastRoomRankMessage.ranks[]`：实测恒为 3 条、条目**只有** `user`（没有 `scoreStr`），
+ * 未声明字段 3 里有显式 `rank` 1..9 且与数组下标严格对齐 —— 所以**数组顺序就是名次**，
+ * 消息上不再单独带 rank 字段。
+ *
+ * ⚠️ 拿不到贡献值（`scoreStr`/`profileHidden` 实测 204/204 都没下发），只有「谁在榜上」。
+ * ⚠️ 服务端把它当**状态广播**：同一份快照按 ~1.4 s 节拍重推，甚至换新 msgId 而内容逐字不变
+ * （实测 30 s 收到 21 条，只有 3 个 msgId 且三者内容相同）。去重见控制器的 `lastRank`。
+ */
+export interface RoomRank {
+  type: "room_rank";
+  timestamp: number;
+  /** 顺序即名次（index 0 = 第 1 名）。 */
+  users: {
+    uid: string;
+    nick: string;
+    /** 头像相对路径（实测全是 `100x100/aweme-avatar/…`，无扩展名，由消费方拼 CDN 前缀） */
+    avatarUri?: string;
+  }[];
+}
+
+export type Message = Comment | GiveGift | SuperChat | Guard | PkScore | RoomStats | RoomRank;

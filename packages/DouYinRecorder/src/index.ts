@@ -283,6 +283,66 @@ export function createPkRawLogger(
 }
 
 /**
+ * 通用「原始报文 jsonl 转储」写入器（内部工厂）。
+ *
+ * 行为契约与 `createPkRawLogger` 一致，抽出来是为了 room / rank 两路转储共用同一份实现
+ * （第 4 份复制会带来「改一处漏一处」的风险）：
+ * - 按输出文件隔离：目标路径变化才重新覆盖建文件
+ * - 首条消息才创建文件、覆盖写（同一场录制重跑不保留旧数据）
+ * - 创建失败：复位内部状态，下次可重建
+ * - 追加失败：保留状态，避免下次覆盖写丢掉已落盘内容
+ * - 任何失败都只告警，绝不影响录制主流程
+ *
+ * @param suffix 文件名后缀：`${videoPath}_${suffix}_raw.jsonl`
+ * @param label 告警前缀（如 `roomRawLog`），用于从日志区分是哪一路转储
+ * @param enabled 关闭时返回空操作（连文件都不创建）
+ */
+function createJsonlRawLogger(
+  suffix: string,
+  label: string,
+  enabled: boolean,
+): (videoPath: string | undefined, tag: string, payload: unknown) => Promise<void> {
+  if (!enabled) return async () => {};
+
+  // 开关在读**环境变量**时是静默的：没这行日志，「环境变量没传到该进程」与
+  // 「传到了但这段时间一条消息都没有」两种情况在日志里都是空白，无法区分。
+  console.log(`[${label}] 转储已启用（首条消息到来时才创建文件）`);
+
+  let path: string | null = null;
+  let ready: Promise<void> | null = null;
+
+  return async (videoPath, tag, payload) => {
+    if (!videoPath) return;
+    const target = `${videoPath}_${suffix}_raw.jsonl`;
+    const isNewTarget = path !== target;
+    try {
+      if (isNewTarget) {
+        path = target;
+        // 覆盖写：同一场录制若重跑，不保留上次的旧数据
+        ready = fs.promises.writeFile(target, "", "utf-8");
+      }
+      await ready;
+      // 只在**创建成功**后才报「已启用」：光看开关状态没意义，用户要的是
+      // 「到底写没写、写到哪」——没有这行时，未启用与「启用了但一条消息都没来」
+      // 在日志里完全无法区分（排查时只能靠猜环境变量）。
+      if (isNewTarget) console.log(`[${label}] 转储已启用 → ${target}`);
+    } catch (err) {
+      // 创建失败：复位状态，允许下次重建
+      path = null;
+      ready = null;
+      console.warn(`[${label}] 创建失败: ${(err as Error)?.message ?? err}`);
+      return;
+    }
+    try {
+      const line = JSON.stringify({ tag, at: Date.now(), payload }, longSafeReplacer) + "\n";
+      await fs.promises.appendFile(target, line, "utf-8");
+    } catch (err) {
+      console.warn(`[${label}] 写入失败: ${(err as Error)?.message ?? err}`);
+    }
+  };
+}
+
+/**
  * 直播间人数消息原始报文转储（调试用）。
  *
  * 目的：确认 `RoomUserSeqMessage` / `RoomStatsMessage` 里哪个字段反映真实在线人数 ——
@@ -299,35 +359,34 @@ export function createPkRawLogger(
 export function createRoomRawLogger(
   enabled: boolean = process.env.BILILIVE_TOOLS_ROOM_RAW_LOG === "1",
 ): (videoPath: string | undefined, tag: string, payload: unknown) => Promise<void> {
-  if (!enabled) return async () => {};
+  return createJsonlRawLogger("room", "roomRawLog", enabled);
+}
 
-  let path: string | null = null;
-  let ready: Promise<void> | null = null;
-
-  return async (videoPath, tag, payload) => {
-    if (!videoPath) return;
-    const target = `${videoPath}_room_raw.jsonl`;
-    try {
-      if (path !== target) {
-        path = target;
-        // 覆盖写：同一场录制若重跑，不保留上次的旧数据
-        ready = fs.promises.writeFile(target, "", "utf-8");
-      }
-      await ready;
-    } catch (err) {
-      // 创建失败：复位状态，允许下次重建
-      path = null;
-      ready = null;
-      console.warn(`[roomRawLog] 创建失败: ${(err as Error)?.message ?? err}`);
-      return;
-    }
-    try {
-      const line = JSON.stringify({ tag, at: Date.now(), payload }, longSafeReplacer) + "\n";
-      await fs.promises.appendFile(target, line, "utf-8");
-    } catch (err) {
-      console.warn(`[roomRawLog] 写入失败: ${(err as Error)?.message ?? err}`);
-    }
-  };
+/**
+ * 贡献榜消息原始报文转储（调试用）。
+ *
+ * 目的：`WebcastRoomRankMessage` 是贡献榜的唯一推送通道（实测约 2 秒一条）。
+ * 2026-10-25 wire 级实测（68 + 32 条快照，两个在播房间）结论：
+ * - `ranks`（proto 字段 2）**恒为 3 条**，每条只有 `user`；
+ *   `score_str(2)` / `profile_hidden(3)` 服务端**一个字节都没下发**
+ *   （wire 里条目内只有字段 1 ⇒ 不是 wiretype 声明错，是字段缺失）
+ * - 下标 +1 == 名次：与未声明字段 3 里的显式 `rank`（1..9）逐一对应
+ * - 消息里还有**未声明的字段 3**：贡献榜前 9 名（`user` + 显式 `rank`），当前被 pbjs 丢弃
+ * ⇒ 这条消息给不出贡献值，只能给「名次 + 用户」。
+ *
+ * ⚠️ 本转储写的是 `toJSON()` 结果，**看不到未声明字段**；要做 wire 级取证需 hook `decode`。
+ *
+ * 命名：`${视频文件名}_rank_raw.jsonl`，一行一条，便于 grep / jq。
+ * 其余行为见 `createJsonlRawLogger`。
+ *
+ * @param enabled 是否启用。默认读环境变量 `BILILIVE_TOOLS_RANK_RAW_LOG`（值为 `"1"` 时开启）——
+ *   **默认关闭**：约 2 秒一条（折算约 1800 条/小时），属排查用的临时产物，
+ *   不该默认产生。关闭时返回空操作（连文件都不创建）。
+ */
+export function createRankRawLogger(
+  enabled: boolean = process.env.BILILIVE_TOOLS_RANK_RAW_LOG === "1",
+): (videoPath: string | undefined, tag: string, payload: unknown) => Promise<void> {
+  return createJsonlRawLogger("rank", "rankRawLog", enabled);
 }
 
 /**
@@ -697,6 +756,63 @@ export function buildRoomStatsMessage(
 }
 
 /**
+ * 从 `WebcastRoomRankMessage` 构造 `room_rank` 消息（纯函数，便于单测）。
+ *
+ * **数组顺序即名次**：`ranks[0]` 就是第 1 名，消息上不再另带 rank。依据是未声明字段 3 里的显式
+ * `rank` 实测为 1..9 递增、且前 3 名的 uid 与 `ranks` 逐一相等 —— 服务端已按名次排好。
+ *
+ * 只取 `user.id` / `user.nickName` / `user.AvatarThumb.uri` 三项。**不要 `scoreStr`**：proto 里虽然
+ * 声明了 `score_str`(2) 与 `profile_hidden`(3)，但实测 204/204 条目都没下发过，wire 上也找不到
+ * `/2/bytes/2`、`/2/bytes/3` 这两条路径 ⇒ 贡献值这条路目前是死的，别在类型上假装有。
+ *
+ * @param useServerTimestamp 是否用服务端 createTime 作时间戳（与 `room_stats` 同一口径）
+ * @returns room_rank 消息；`ranks` 缺失/为空/全部缺 uid 时返回 `null`
+ */
+export function buildRoomRankMessage(
+  msg: {
+    ranks?: {
+      user?: {
+        id?: string;
+        nickName?: string;
+        /** ⚠️ 首字母大写：proto 里字段名就是 `AvatarThumb`，与 `PkScore` 的小写下划线风格不同 */
+        AvatarThumb?: { uri?: string } | null;
+      } | null;
+    }[];
+    common?: { createTime?: string | number };
+  },
+  useServerTimestamp: boolean,
+): Message | null {
+  const users: { uid: string; nick: string; avatarUri?: string }[] = [];
+  for (const item of msg.ranks ?? []) {
+    const user = item?.user;
+    const uid = String(user?.id ?? "");
+    // 缺 uid 的条目整条丢弃：uid 是 `<u>` 的唯一标识，缺了就无从关联
+    // （`<rank_users>` 的键是 `(uid, 昵称)`，见 liveManager 的 `avatarKey`）。
+    if (!uid) continue;
+    const avatarUri = user?.AvatarThumb?.uri;
+    users.push({
+      uid,
+      nick: String(user?.nickName ?? ""),
+      ...(avatarUri ? { avatarUri } : {}),
+    });
+  }
+  // 空榜不生成消息：写了会让 XSL 多出一个空表，且与「本场没有榜」无法区分。
+  if (users.length === 0) return null;
+
+  const createTime = Number(msg.common?.createTime ?? 0);
+  return {
+    type: "room_rank",
+    // 与 buildRoomStatsMessage 同口径：createTime 有秒/毫秒两种（实测都出现过），按数值大小判别
+    timestamp: useServerTimestamp
+      ? createTime > 9999999999
+        ? createTime
+        : createTime * 1000
+      : Date.now(),
+    users,
+  };
+}
+
+/**
  * 从 `WebcastLinkMicMethod` 消息构造 `pk_score` 消息（纯函数，便于单测）。
  *
  * **为什么需要抽出来**：`msg.userScores` 在 proto 里是 `repeated`，抖音的
@@ -1056,6 +1172,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const appendPkRawLog = createPkRawLogger();
   // 人数消息转储：默认关闭，设 BILILIVE_TOOLS_ROOM_RAW_LOG=1 才写 _room_raw.jsonl
   const appendRoomRawLog = createRoomRawLogger();
+  // 贡献榜消息转储：默认关闭，设 BILILIVE_TOOLS_RANK_RAW_LOG=1 才写 _rank_raw.jsonl
+  const appendRankRawLog = createRankRawLogger();
   // 礼物原始消息转储（临时调试，与 PK 转储独立）：确认 gift.image 下发了哪些字段。
   const appendGiftRawLog = createGiftRawLogger();
 
@@ -1108,6 +1226,20 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     });
     if (!roomStatsMessage) return;
     extraDataController.addMessage(roomStatsMessage);
+  });
+
+  // 贡献榜消息（转储开关见 createRankRawLogger）。
+  client.on("roomRank", (msg) => {
+    void appendRankRawLog(downloader.videoFilePath, "roomRank", msg);
+    const extraDataController = downloader.getExtraDataController();
+    if (!extraDataController) return;
+    const roomRankMessage = buildRoomRankMessage(
+      msg,
+      // `useServerTimestamp` 在 Recorder 类型里是可选的，undefined 视为关闭（与 roomStats 一致）
+      this.useServerTimestamp ?? false,
+    );
+    if (!roomRankMessage) return;
+    extraDataController.addMessage(roomRankMessage);
   });
 
   client.on("chat", (msg) => {
