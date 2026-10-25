@@ -53,7 +53,19 @@ describe("表头导航", () => {
     const xml = await writeXml();
 
     const navOrders = [...xml.matchAll(/<a href="#([a-z_]+)">/g)].map((m) => m[1]);
-    expect(navOrders).toEqual(["d", "guard", "sc", "gift", "room", "pk"]);
+    expect(navOrders).toEqual(["d", "guard", "sc", "gift", "room", "rank", "pk"]);
+  });
+
+  it("含「贡献榜」入口，指向 #rank", async () => {
+    const xml = await writeXml([
+      {
+        type: "room_rank",
+        timestamp: Date.now(),
+        users: [{ uid: "1", nick: "a" }],
+      },
+    ]);
+
+    expect(xml).toContain('<a href="#rank">贡献榜</a>');
   });
 });
 

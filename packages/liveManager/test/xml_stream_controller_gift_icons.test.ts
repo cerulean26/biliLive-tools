@@ -346,10 +346,11 @@ describe("礼物图标表与头像内联", () => {
     await controller.flush();
 
     const xml = await fs.readFile(savePath, "utf8");
-    // img 只出现在内嵌样式表的模板里，共 5 个分支：头像(webcast / aweme-avatar 缺尺寸 / aweme)
-    // + 图标(webcast / aweme)。固定为 5 是有意的：将来新增分支却漏加 lazy/onerror 时，这里会红。
+    // img 只出现在内嵌样式表的模板里，共 8 个分支：头像(webcast / aweme-avatar 缺尺寸 / aweme)
+    // + 图标(webcast / aweme) + 贡献榜头像(webcast / aweme-avatar 缺尺寸 / aweme)。
+    // 固定为 8 是有意的：将来新增分支却漏加 lazy/onerror 时，这里会红。
     const imgs = xml.match(/<img[^>]*>/g) ?? [];
-    expect(imgs).toHaveLength(5);
+    expect(imgs).toHaveLength(8);
     for (const tag of imgs) {
       expect(tag).toContain('loading="lazy"');
       expect(tag).toContain('decoding="async"');
