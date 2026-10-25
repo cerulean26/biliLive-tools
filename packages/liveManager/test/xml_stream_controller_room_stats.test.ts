@@ -149,4 +149,43 @@ describe("在线人数 <room>：只记变化", () => {
     expect(xml).toContain('<h2 id="room">在线人数</h2>');
     expect(xml).toContain('<z:for-each select="/i/room">');
   });
+
+  it("时间列走 fmtTs 模板（HH:MM:SS.mmm），不再是裸秒数", async () => {
+    const { controller, savePath, start } = await makeController();
+    controller.addMessage(room(start, "12759"));
+    await controller.flush();
+
+    const xml = await fs.readFile(savePath, "utf8");
+    // 用整段锚点定位，避免与贡献榜同样写 `select="@ts"` 的调用点混淆
+    expect(xml).toContain(
+      '<z:for-each select="/i/room"><tr><td><z:call-template name="fmtTs">' +
+        '<z:with-param name="ts" select="@ts"/></z:call-template></td>',
+    );
+    expect(xml).not.toContain('<z:for-each select="/i/room"><tr><td><z:value-of select="@ts"/>');
+  });
+
+  it("表头声明「变化」语义（这一列是变化时刻，不是采样点）", async () => {
+    const { controller, savePath, start } = await makeController();
+    controller.addMessage(room(start, "12759"));
+    await controller.flush();
+
+    const xml = await fs.readFile(savePath, "utf8");
+    expect(xml).toContain("<th>变化时间</th><th>在线人数</th>");
+  });
+
+  it("区块壳与贡献榜统一：变化明细 + 按规模自适应展开", async () => {
+    const { controller, savePath, start } = await makeController();
+    controller.addMessage(room(start, "12759"));
+    await controller.flush();
+
+    const xml = await fs.readFile(savePath, "utf8");
+    // 与 <rank> 同一套壳，阈值共用 expandLimit（改一处两边同时生效）
+    expect(xml).toContain("<summary>变化明细（");
+    expect(xml).toContain('test="count(/i/room) &lt;= $expandLimit"');
+    expect(xml).toContain('<z:variable name="expandLimit" select="50"/>');
+    // 「采样明细 / N 点」这套说法与「变化时间」自相矛盾，已彻底弃用
+    expect(xml).not.toContain("采样明细");
+    // 导航计数单位与贡献榜一致
+    expect(xml).toContain('共<z:value-of select="count(/i/room)"/>次变化</td>');
+  });
 });

@@ -143,6 +143,23 @@ describe("贡献榜：只记变化（键是保序的 (uid, 昵称) 序列）", (
     ]);
   });
 
+  it("人相同、名次整体轮转（不是两两互换）也要写出新节点", async () => {
+    // 「互换」这个词容易让人以为只有两两对调才算变化。实际规则是保序序列任一位置
+    // 不同就写 —— 整体轮转、单向升降都在内，这条用例把轮转单独钉住。
+    const { controller, savePath, start } = await makeController();
+
+    controller.addMessage(rank([A, B, C], start + 1000));
+    controller.addMessage(rank([B, C, A], start + 2000));
+    await controller.flush();
+
+    const xml = await fs.readFile(savePath, "utf8");
+    expect(countRank(xml)).toBe(2);
+    expect(rankSeqs(xml)).toEqual([
+      [A.uid, B.uid, C.uid],
+      [B.uid, C.uid, A.uid],
+    ]);
+  });
+
   it("换人要写出新节点，并只为首见的新面孔补一行 <rank_users>", async () => {
     const { controller, savePath, start } = await makeController();
 
@@ -323,18 +340,44 @@ describe("贡献榜：XSL 模板接线", () => {
     const xml = await fs.readFile(savePath, "utf8");
     // key：用 `(uid, 昵称)` 复合键把 `<u>` 翻成昵称/头像（匿名 uid 共用的前提）
     expect(xml).toContain(`name="rankUser" match="rank_users/user" use="concat(@uid,'|',@nick)"`);
-    // key 定义 + 3 个查表点必须同一个键：只改一侧时 `key()` 返回空集、头像静默全没
-    expect(xml.match(/key\('rankUser',concat\(@uid,'\|',@nick\)\)/g) ?? []).toHaveLength(3);
+    // key 定义 + 2 个查表点（头像模板、昵称模板）必须同一个键：
+    // 只改一侧时 `key()` 返回空集、头像与昵称静默全没
+    expect(xml.match(/key\('rankUser',concat\(\$uid,'\|',\$nick\)\)/g) ?? []).toHaveLength(2);
     expect(xml).not.toContain(`key('rankUser',@uid)`);
     // `<u>` 必须自带昵称，否则 XSL 的 concat 拼不出键
     expect(xml).toMatch(/<u uid="[^"]+" nick="[^"]*">/);
-    // 变量：条件列只算一次（与 $hasAv/$hasGi 同一理由，避免 for-each 内重扫整份文档）
-    expect(xml).toContain(`variable name="hasRankUser"`);
+    // 查表与时间格式化都收进命名模板，调用点不再自己拼键（原先 3 处拼键的位置降到 2 处且形状统一）
+    for (const t of ["rankAvatar", "rankNick", "fmtTs"]) {
+      expect(xml).toContain(`<z:template name="${t}">`);
+    }
     // 分区与汇总表入口
     expect(xml).toContain(`<h2 id="rank">贡献榜</h2>`);
     expect(xml).toContain(`<a href="#rank">贡献榜</a>`);
-    // 最新快照 + 变化记录
-    expect(xml).toContain(`<z:for-each select="/i/rank[last()]/u">`);
-    expect(xml).toContain(`<z:for-each select="/i/rank">`);
+    // 与在线人数区块共用同一套壳：变化明细 + 按规模自适应展开（阈值只有 expandLimit 一处）
+    expect(xml).toContain("<summary>变化明细（");
+    expect(xml).toContain('test="count(/i/rank) &lt;= $expandLimit"');
+    expect(xml).toContain('<z:variable name="expandLimit" select="50"/>');
+    // 原来的 <p> 说明已并入 summary（「末行即当前榜」的提示不能丢）
+    expect(xml).not.toContain("最后一行即当前榜");
+    expect(xml).toContain("末行即当前榜");
+    // 措辞用「与上次记录不一致」这种规则式表述，而不是枚举（「换人/名次互换」）：
+    // 枚举总会漏（轮转、换回、改名都算不一致），规则式天然穷尽且与实现一一对应
+    expect(xml).toContain("次，只要与上次记录不一致就写入，末行即当前榜");
+    expect(xml).not.toContain("名次互换");
+    // 单一矩阵：行=变化点、列=名次；不再有单独的「当前榜」表（当前榜就是最后一行）
+    for (const h of ["第 1 名", "第 2 名", "第 3 名"]) {
+      expect(xml).toContain(`<th>${h}</th>`);
+    }
+    expect(xml).not.toContain(`<z:for-each select="/i/rank[last()]/u">`);
+    // 时间列由纯 XSLT 计算（@ts 是距录制开始的秒数），不依赖内联 JS
+    expect(xml).toContain("format-number(floor($ts div 3600)");
+    // 时间列的表头负责声明「变化」语义（与在线人数表统一），行内不再重复「起 / 至今」
+    // ⚠️ 必须与相邻表头一起断言：单独查 `<th>变化时间</th>` 会被在线人数表的那一处蒙过，
+    // 导致贡献榜表头被改回「时间」时测试仍然绿（实测踩到）。
+    expect(xml).toMatch(/<th>变化时间<\/th>\s+<th>第 1 名<\/th>/);
+    expect(xml).not.toContain("（至今）");
+    // 最后一行即当前榜，靠 class 高亮
+    expect(xml).toContain(`<z:attribute name="class">cur</z:attribute>`);
+    expect(xml).toContain("tr.cur td{background:#fff8e1}");
   });
 });

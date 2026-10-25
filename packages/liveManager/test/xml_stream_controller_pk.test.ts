@@ -54,6 +54,19 @@ describe("xml_stream_controller:: 末尾 PK 昵称映射表", () => {
     expect(content.trimEnd().endsWith("</i>")).toBe(true);
   });
 
+  it("PK 时间列走 fmtTs 模板（HH:MM:SS.mmm），不再是裸秒数", async () => {
+    ctrl.addMessage(pkMessage(Date.now() + 1500, ["65305021017"]));
+    await ctrl.flush();
+
+    const content = await nodeFs.promises.readFile(savePath, "utf-8");
+    // 时间只在每组第一行渲染，读的是父节点 <pk> 的 @ts
+    expect(content).toContain(
+      '<z:if test="position()=1"><z:call-template name="fmtTs">' +
+        '<z:with-param name="ts" select="../@ts"/></z:call-template></z:if>',
+    );
+    expect(content).not.toContain('<z:value-of select="../@ts"/>');
+  });
+
   it("player 节点只输出 uid，昵称完全交给映射表（由 XSL 层翻译）", async () => {
     const t = Date.now();
     // 模拟中途接入：入队时昵称未知
