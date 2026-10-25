@@ -221,72 +221,10 @@ export const PK_NICKNAME_FLUSH_WAIT_TIMEOUT = 3_000;
 const PK_NICKNAME_FLUSH_CONCURRENCY = 4;
 
 /**
- * 创建「PK 原始消息落盘」写入器（调试用）。
- *
- * 抖音的 PK 消息里 userScores 不含昵称，昵称要靠 linkMicBattle /
- * linkMicBattleFinish 的 userInfos 补齐，而这两者的到达时机并不保证。
- * 出问题时（例如某 uid 全程显示为 uid）需要原始报文才能定位，故按行写出 JSONL：
- * 一行一条消息，便于 grep / jq 处理。
- *
- * 命名沿用 XML 的规则（`streamManager.ts:295` 用 `${recordSavePath}`）：
- *   `${视频文件名}_pk_raw.jsonl`
- *
- * ⚠️ 由**每个录制会话**调用一次（见 `checkLiveStatusAndRecord`），状态随实例创建。
- * 早期实现把「文件路径 / 就绪 Promise」放在模块顶层，导致同进程内**第 2 次录制**、
- * 或**另一个房间**的录制器，都会把日志写进**第 1 次录制**的文件（跨会话串台）。
- * 现按「输出文件」而非「进程」隔离 —— 每个会话一个写入器，各自的文件互不影响。
- *
- * - 首条消息才创建文件（没有 PK 不产生空文件），创建时**覆盖写**（重跑不留旧数据）
- * - 目标文件变化（同一写入器被复用于新路径）时同样重新覆盖写
- * - 创建失败：复位内部状态，下次可重建（否则本会话原始日志永久失效）
- * - 追加失败：保留状态，避免下次覆盖写丢掉已落盘内容
- * - 任何失败都只告警，绝不影响录制主流程
- *
- * @param enabled 是否启用。默认读环境变量 `BILILIVE_TOOLS_PK_RAW_LOG`（值为 `"1"` 时开启）——
- *   **默认关闭**：每次录制都会在视频目录留下一个约 160 KB 的 `_pk_raw.jsonl`，属排查用的
- *   临时产物，不该默认产生。关闭时返回空操作（连文件都不创建）。
- */
-export function createPkRawLogger(
-  enabled: boolean = process.env.BILILIVE_TOOLS_PK_RAW_LOG === "1",
-): (videoPath: string | undefined, tag: string, payload: unknown) => Promise<void> {
-  if (!enabled) return async () => {};
-
-  // 状态随实例创建 —— 每个录制会话一个实例，避免跨会话串台（P1 修复）。
-  let path: string | null = null;
-  let ready: Promise<void> | null = null;
-
-  return async (videoPath, tag, payload) => {
-    if (!videoPath) return;
-    const target = `${videoPath}_pk_raw.jsonl`;
-    try {
-      if (path !== target) {
-        path = target;
-        // 覆盖写：同一场录制若重跑，不保留上次的旧数据
-        ready = fs.promises.writeFile(target, "", "utf-8");
-      }
-      await ready;
-    } catch (err) {
-      // 创建失败：复位内部状态，允许下次重建（否则本会话原始日志永久失效）
-      path = null;
-      ready = null;
-      console.warn(`[pkRawLog] 创建失败: ${(err as Error)?.message ?? err}`);
-      return;
-    }
-    try {
-      const line = JSON.stringify({ tag, at: Date.now(), payload }, longSafeReplacer) + "\n";
-      await fs.promises.appendFile(target, line, "utf-8");
-    } catch (err) {
-      // 追加失败：不重置状态，避免下次覆盖写丢掉已落盘内容
-      console.warn(`[pkRawLog] 写入失败: ${(err as Error)?.message ?? err}`);
-    }
-  };
-}
-
-/**
  * 通用「原始报文 jsonl 转储」写入器（内部工厂）。
  *
- * 行为契约与 `createPkRawLogger` 一致，抽出来是为了 room / rank 两路转储共用同一份实现
- * （第 4 份复制会带来「改一处漏一处」的风险）：
+ * 四个转储入口（pk / room / rank / gift）**共用这一份实现**；各自的包装函数只负责固定
+ * 环境变量名、文件名后缀与日志标签 —— 避免「改一处漏一处」：
  * - 按输出文件隔离：目标路径变化才重新覆盖建文件
  * - 首条消息才创建文件、覆盖写（同一场录制重跑不保留旧数据）
  * - 创建失败：复位内部状态，下次可重建
@@ -340,6 +278,38 @@ function createJsonlRawLogger(
       console.warn(`[${label}] 写入失败: ${(err as Error)?.message ?? err}`);
     }
   };
+}
+
+/**
+ * 创建「PK 原始消息落盘」写入器（调试用）。
+ *
+ * 抖音的 PK 消息里 userScores 不含昵称，昵称要靠 linkMicBattle /
+ * linkMicBattleFinish 的 userInfos 补齐，而这两者的到达时机并不保证。
+ * 出问题时（例如某 uid 全程显示为 uid）需要原始报文才能定位，故按行写出 JSONL：
+ * 一行一条消息，便于 grep / jq 处理。
+ *
+ * 命名沿用 XML 的规则（`streamManager.ts:295` 用 `${recordSavePath}`）：
+ *   `${视频文件名}_pk_raw.jsonl`
+ *
+ * ⚠️ 由**每个录制会话**调用一次（见 `checkLiveStatusAndRecord`），状态随实例创建。
+ * 早期实现把「文件路径 / 就绪 Promise」放在模块顶层，导致同进程内**第 2 次录制**、
+ * 或**另一个房间**的录制器，都会把日志写进**第 1 次录制**的文件（跨会话串台）。
+ * 现按「输出文件」而非「进程」隔离 —— 每个会话一个写入器，各自的文件互不影响。
+ *
+ * - 首条消息才创建文件（没有 PK 不产生空文件），创建时**覆盖写**（重跑不留旧数据）
+ * - 目标文件变化（同一写入器被复用于新路径）时同样重新覆盖写
+ * - 创建失败：复位内部状态，下次可重建（否则本会话原始日志永久失效）
+ * - 追加失败：保留状态，避免下次覆盖写丢掉已落盘内容
+ * - 任何失败都只告警，绝不影响录制主流程
+ *
+ * @param enabled 是否启用。默认读环境变量 `BILILIVE_TOOLS_PK_RAW_LOG`（值为 `"1"` 时开启）——
+ *   **默认关闭**：每次录制都会在视频目录留下一个约 160 KB 的 `_pk_raw.jsonl`，属排查用的
+ *   临时产物，不该默认产生。关闭时返回空操作（连文件都不创建）。
+ */
+export function createPkRawLogger(
+  enabled: boolean = process.env.BILILIVE_TOOLS_PK_RAW_LOG === "1",
+): (videoPath: string | undefined, tag: string, payload: unknown) => Promise<void> {
+  return createJsonlRawLogger("pk", "pkRawLog", enabled);
 }
 
 /**
@@ -407,35 +377,7 @@ export function createRankRawLogger(
 export function createGiftRawLogger(
   enabled: boolean = process.env.BILILIVE_TOOLS_GIFT_RAW_LOG === "1",
 ): (videoPath: string | undefined, tag: string, payload: unknown) => Promise<void> {
-  if (!enabled) return async () => {};
-
-  let path: string | null = null;
-  let ready: Promise<void> | null = null;
-
-  return async (videoPath, tag, payload) => {
-    if (!videoPath) return;
-    const target = `${videoPath}_gift_raw.jsonl`;
-    try {
-      if (path !== target) {
-        path = target;
-        // 覆盖写：同一场录制若重跑，不保留上次的旧数据
-        ready = fs.promises.writeFile(target, "", "utf-8");
-      }
-      await ready;
-    } catch (err) {
-      // 创建失败：复位状态，允许下次重建
-      path = null;
-      ready = null;
-      console.warn(`[giftRawLog] 创建失败: ${(err as Error)?.message ?? err}`);
-      return;
-    }
-    try {
-      const line = JSON.stringify({ tag, at: Date.now(), payload }, longSafeReplacer) + "\n";
-      await fs.promises.appendFile(target, line, "utf-8");
-    } catch (err) {
-      console.warn(`[giftRawLog] 写入失败: ${(err as Error)?.message ?? err}`);
-    }
-  };
+  return createJsonlRawLogger("gift", "giftRawLog", enabled);
 }
 
 /**
@@ -1219,9 +1161,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     const extraDataController = downloader.getExtraDataController();
     if (!extraDataController) return;
     const roomStatsMessage = buildRoomStatsMessage(msg, {
-      // `useServerTimestamp` 在 Recorder 类型里是可选的；`?? false` 与原三元表达式
-      // 的语义一致（undefined 视为关闭 → 用本地时间）
-      useServerTimestamp: this.useServerTimestamp ?? false,
+      // `useServerTimestamp` 在 Recorder 类型里可选，但 `createRecorder` 已把它兜底成 boolean
+      // （`opts.useServerTimestamp ?? true`），所以这里的默认值**实际不可达**。
+      // 仍写 `true` 是为了与上游 `createRecorder`、以及 PK 那处保持一致 —— 万一将来兜底被去掉，
+      // 也不会让 room/rank 静默退回本地时间。
+      useServerTimestamp: this.useServerTimestamp ?? true,
       save: this.saveRoomStats !== false,
     });
     if (!roomStatsMessage) return;
@@ -1235,8 +1179,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (!extraDataController) return;
     const roomRankMessage = buildRoomRankMessage(
       msg,
-      // `useServerTimestamp` 在 Recorder 类型里是可选的，undefined 视为关闭（与 roomStats 一致）
-      this.useServerTimestamp ?? false,
+      // 同上：默认值统一为 `true`（与 roomStats / PK / 上游一致），实际不可达
+      this.useServerTimestamp ?? true,
     );
     if (!roomRankMessage) return;
     extraDataController.addMessage(roomRankMessage);
