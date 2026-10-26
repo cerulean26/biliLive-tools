@@ -707,8 +707,9 @@ export function buildRoomStatsMessage(
  * 声明了 `score_str`(2) 与 `profile_hidden`(3)，但实测 204/204 条目都没下发过，wire 上也找不到
  * `/2/bytes/2`、`/2/bytes/3` 这两条路径 ⇒ 贡献值这条路目前是死的，别在类型上假装有。
  *
- * @param useServerTimestamp 是否用服务端 createTime 作时间戳（与 `room_stats` 同一口径）
- * @returns room_rank 消息；`ranks` 缺失/为空/全部缺 uid 时返回 `null`
+ * @param options.useServerTimestamp 是否用服务端 createTime 作时间戳（与 `room_stats` 同一口径）
+ * @param options.save 用户是否开启「贡献榜」开关；`false` 时返回 `null`
+ * @returns room_rank 消息；开关关闭时返回 `null`；`ranks` 缺失/为空/全部缺 uid 时也返回 `null`
  */
 export function buildRoomRankMessage(
   msg: {
@@ -722,8 +723,11 @@ export function buildRoomRankMessage(
     }[];
     common?: { createTime?: string | number };
   },
-  useServerTimestamp: boolean,
+  options: { useServerTimestamp: boolean; save?: boolean },
 ): Message | null {
+  const { useServerTimestamp, save = true } = options;
+  if (!save) return null;
+
   const users: { uid: string; nick: string; avatarUri?: string }[] = [];
   for (const item of msg.ranks ?? []) {
     const user = item?.user;
@@ -1177,11 +1181,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     void appendRankRawLog(downloader.videoFilePath, "roomRank", msg);
     const extraDataController = downloader.getExtraDataController();
     if (!extraDataController) return;
-    const roomRankMessage = buildRoomRankMessage(
-      msg,
+    const roomRankMessage = buildRoomRankMessage(msg, {
       // 同上：默认值统一为 `true`（与 roomStats / PK / 上游一致），实际不可达
-      this.useServerTimestamp ?? true,
-    );
+      useServerTimestamp: this.useServerTimestamp ?? true,
+      save: this.saveRoomRank !== false,
+    });
     if (!roomRankMessage) return;
     extraDataController.addMessage(roomRankMessage);
   });

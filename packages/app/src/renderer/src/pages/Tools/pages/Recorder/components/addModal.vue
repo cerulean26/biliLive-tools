@@ -806,6 +806,20 @@
               v-if="!config.disableProvideCommentsWhenRecording && config.providerId === 'DouYin'"
             >
               <template #label>
+                <span class="inline-flex"> 贡献榜 </span>
+              </template>
+              <n-switch
+                v-model:value="config.saveRoomRank"
+                :disabled="globalFieldsObj.saveRoomRank"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.saveRoomRank" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item
+              v-if="!config.disableProvideCommentsWhenRecording && config.providerId === 'DouYin'"
+            >
+              <template #label>
                 <span class="inline-flex"> 礼物图片 </span>
               </template>
               <n-switch
@@ -956,6 +970,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     saveGiftDanma: true,
     savePk: true,
     saveRoomStats: true,
+    saveRoomRank: true,
     saveGiftIcon: true,
     saveGiftAvatar: true,
     saveSCDanma: true,
@@ -1088,6 +1103,7 @@ const initGlobalFields = () => {
     saveGiftDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveGiftDanma"),
     savePk: !(config.value?.noGlobalFollowFields ?? []).includes("savePk"),
     saveRoomStats: !(config.value?.noGlobalFollowFields ?? []).includes("saveRoomStats"),
+    saveRoomRank: !(config.value?.noGlobalFollowFields ?? []).includes("saveRoomRank"),
     saveGiftIcon: !(config.value?.noGlobalFollowFields ?? []).includes("saveGiftIcon"),
     saveGiftAvatar: !(config.value?.noGlobalFollowFields ?? []).includes("saveGiftAvatar"),
     saveSCDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveSCDanma"),
@@ -1171,6 +1187,9 @@ watch(
     }
     if (val.saveRoomStats) {
       config.value.saveRoomStats = appConfig.value.recorder.saveRoomStats;
+    }
+    if (val.saveRoomRank) {
+      config.value.saveRoomRank = appConfig.value.recorder.saveRoomRank;
     }
     if (val.saveGiftIcon) {
       config.value.saveGiftIcon = appConfig.value.recorder.saveGiftIcon;

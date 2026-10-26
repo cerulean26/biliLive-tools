@@ -664,6 +664,22 @@
               :disabled="config.recorder.disableProvideCommentsWhenRecording"
             />
           </n-form-item>
+          <n-form-item
+            :class="{
+              'form-item-disabled': config.recorder.disableProvideCommentsWhenRecording,
+            }"
+          >
+            <template #label>
+              <Tip
+                text="贡献榜"
+                tip="把贡献榜成员记录到 XML，供录制预览查看。只记录榜单发生变化的那一次快照，因此名次稳定的直播间数据量很小"
+              ></Tip>
+            </template>
+            <n-switch
+              v-model:value="config.recorder.saveRoomRank"
+              :disabled="config.recorder.disableProvideCommentsWhenRecording"
+            />
+          </n-form-item>
           <div v-if="giftAssetsHintVisible" class="disabled-hint">
             需先在<span class="goto-link" @click="gotoGiftDanmaSetting">「基础设置」</span
             >开启「保存礼物」，否则以下两项收不到礼物数据

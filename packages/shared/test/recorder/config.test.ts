@@ -280,6 +280,20 @@ describe("RecorderConfig", () => {
       expect(recorderConfig.get("dy")?.saveRoomStats).toBe(true);
     });
 
+    it("贡献榜：全局配置缺 saveRoomRank 时回退为 true（老配置升级后不丢数据）", () => {
+      mockAppConfig.get.mockImplementation((key: string) => {
+        if (key === "recorder") {
+          return {};
+        }
+        if (key === "recorders") {
+          return [{ id: "dy", providerId: "DouYin", channelId: "1" }];
+        }
+        return null;
+      });
+
+      expect(recorderConfig.get("dy")?.saveRoomRank).toBe(true);
+    });
+
     it("礼物图片/送礼者头像：全局配置缺键时回退为 true（老配置升级后仍带图）", () => {
       mockAppConfig.get.mockImplementation((key: string) => {
         if (key === "recorder") {

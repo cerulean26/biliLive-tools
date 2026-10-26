@@ -40,6 +40,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   savePk?: boolean;
   // 保存在线人数（仅抖音）
   saveRoomStats?: boolean;
+  // 保存贡献榜（仅抖音）
+  saveRoomRank?: boolean;
   // 保存礼物图标（仅抖音）
   saveGiftIcon?: boolean;
   // 保存送礼用户头像（仅抖音）
@@ -127,6 +129,7 @@ export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreat
     | "saveGiftDanma"
     | "savePk"
     | "saveRoomStats"
+    | "saveRoomRank"
     | "saveGiftIcon"
     | "saveGiftAvatar"
     | "disableProvideCommentsWhenRecording"
