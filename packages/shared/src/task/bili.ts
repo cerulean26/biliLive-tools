@@ -13,6 +13,7 @@ import {
   BiliDownloadVideoTask,
   BiliPartVideoTask,
   BiliEditVideoTask,
+  BiliVideoTask,
   BilibiliLiveDownloadVideoTask,
 } from "./task.js";
 import log from "../utils/log.js";
@@ -750,6 +751,21 @@ export async function preFormatOptions(
 }
 
 /**
+ * 本次提交实际包含的源文件路径（去重）
+ *
+ * 「任务队列 → + 添加视频」追加的分P不在本次调用的 videos 里，但会并入同一次 submit，
+ * 只按 videos 算的话这些文件永远不会被「上传后删除 / 审核通过后删除」覆盖。
+ *
+ * ⚠️ 只能在 onEnd 里取：submit() 的 finally 会 releasePartTasks() 把 taskList 清空。
+ */
+export function collectSubmittedFiles(pTask: BiliVideoTask, videos: { path: string }[]): string[] {
+  const submitted = pTask.taskList
+    .map((task) => task.completedPart?.filePath)
+    .filter((path): path is string => !!path);
+  return [...new Set([...videos.map((video) => video.path), ...submitted])];
+}
+
+/**
  * 上传稿件
  */
 async function addMedia(
@@ -780,6 +796,10 @@ async function addMedia(
     },
     {
       onEnd: async (data: { aid: number; bvid: string }) => {
+        // 快照采集：必须在 onEnd 同步阶段、releasePartTasks() 清空 taskList 之前完成。
+        // submit() 的 finally 会清空 taskList，而审核回调 commentQueue.once("update") 在数分钟后才触发，
+        // 若那时再算 collectSubmittedFiles 会因 taskList 已空而丢失队列「+」追加的分P。
+        const submittedFiles = collectSubmittedFiles(pTask, videos);
         try {
           // 合集相关功能
           if (formattedOptions.seasonId) {
@@ -829,7 +849,7 @@ async function addMedia(
                 notification: !!appConfig.get("notification")?.task?.mediaStatusCheck?.length,
                 removeOriginAfterUploadCheck:
                   extraOptions?.afterUploadDeletAction === "deleteAfterCheck",
-                files: videos.map((video) => video.path),
+                files: submittedFiles,
                 uid: uid,
                 aid: data.aid,
               },
@@ -841,9 +861,9 @@ async function addMedia(
 
         // 处理上传后操作
         if (extraOptions?.afterUploadDeletAction === "delete") {
-          for (const video of videos) {
+          for (const file of submittedFiles) {
             try {
-              trashItem(video.path);
+              trashItem(file);
             } catch (error) {
               log.error("删除源文件失败", error);
             }
@@ -915,6 +935,9 @@ export async function editMedia(
     },
     {
       onEnd: async () => {
+        // 快照采集：同 addMedia，必须在 onEnd 同步阶段、releasePartTasks 清空 taskList 之前完成，
+        // 否则延迟到 commentQueue 审核回调时 taskList 已空，队列「+」追加的分P 会丢失。
+        const submittedFiles = collectSubmittedFiles(pTask, videos);
         // 审核检查
         if (
           extraOptions?.forceCheck ||
@@ -933,7 +956,7 @@ export async function editMedia(
                 notification: !!appConfig.get("notification")?.task?.mediaStatusCheck?.length,
                 removeOriginAfterUploadCheck:
                   extraOptions?.afterUploadDeletAction === "deleteAfterCheck",
-                files: videos.map((video) => video.path),
+                files: submittedFiles,
                 uid: uid,
                 aid: aid,
               },
@@ -944,9 +967,9 @@ export async function editMedia(
         }
         // 处理上传后操作
         if (extraOptions?.afterUploadDeletAction === "delete") {
-          for (const video of videos) {
+          for (const file of submittedFiles) {
             try {
-              trashItem(video.path);
+              trashItem(file);
             } catch (error) {
               log.error("删除源文件失败", error);
             }

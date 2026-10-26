@@ -307,10 +307,19 @@ router.post("/burn", async (ctx) => {
       const aid = options?.uploadOptions?.aid;
       const uid = options?.uploadOptions?.uid;
       const file = options?.uploadOptions?.filePath;
+      // 与 /bili/upload 保持一致：不传这个的话，前端传来的 removeOriginAfterUploadCheck
+      // 会被丢掉，「审核通过后删除源文件」对这条路径永远不生效
+      const afterUploadDeletAction = options?.uploadOptions?.removeOriginAfterUploadCheck
+        ? "deleteAfterCheck"
+        : "none";
       if (aid) {
-        biliApi.editMedia(aid as number, [file], options?.uploadOptions?.config, uid);
+        biliApi.editMedia(aid as number, [file], options?.uploadOptions?.config, uid, {
+          afterUploadDeletAction,
+        });
       } else {
-        biliApi.addMedia([file], options?.uploadOptions?.config, uid);
+        biliApi.addMedia([file], options?.uploadOptions?.config, uid, {
+          afterUploadDeletAction,
+        });
       }
     });
   }
@@ -386,7 +395,12 @@ router.post("/cut", async (ctx) => {
     task.on("task-end", () => {
       const uid = options?.uploadOptions?.uid;
       const file = options?.uploadOptions?.filePath;
-      biliApi.addMedia([file], options?.uploadOptions?.config, uid);
+      // 与 /bili/upload 保持一致：不传这个的话 removeOriginAfterUploadCheck 会被丢掉
+      biliApi.addMedia([file], options?.uploadOptions?.config, uid, {
+        afterUploadDeletAction: options?.uploadOptions?.removeOriginAfterUploadCheck
+          ? "deleteAfterCheck"
+          : "none",
+      });
     });
   }
 
