@@ -349,7 +349,7 @@ git push origin master --tags
 ### 运行时错误
 
 1. 检查日志文件
-2. 使用调试模式
+2. 使用调试模式（见[排障与调试](/features/debug)）
 3. 查看浏览器控制台
 
 ## 相关资源

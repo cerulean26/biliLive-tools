@@ -705,6 +705,77 @@
               :disabled="giftAssetsDisabled"
             />
           </n-form-item>
+
+          <div class="divider"></div>
+          <h3>调试</h3>
+          <div class="disabled-hint">
+            以下转储用于排查问题，产物写在视频同目录，<b>不会被自动清理</b>，排查完请手动删除。环境变量
+            BILILIVE_TOOLS_*_RAW_LOG=1 仍可强制开启（设置页与变量取或）
+          </div>
+          <n-form-item
+            :class="{
+              'form-item-disabled': config.recorder.disableProvideCommentsWhenRecording,
+            }"
+          >
+            <template #label>
+              <Tip
+                text="PK 原始报文"
+                tip="把 PK 原始消息按行写入「视频名_pk_raw.jsonl」。单场约几百 KB，含昵称补齐所需的 userInfos"
+              ></Tip>
+            </template>
+            <n-switch
+              v-model:value="config.recorder.rawLogPk"
+              :disabled="config.recorder.disableProvideCommentsWhenRecording"
+            />
+          </n-form-item>
+          <n-form-item
+            :class="{
+              'form-item-disabled': config.recorder.disableProvideCommentsWhenRecording,
+            }"
+          >
+            <template #label>
+              <Tip
+                text="在线人数原始报文"
+                tip="写入「视频名_room_raw.jsonl」。人数消息约 0.6 秒一条（约 5700 条/小时），文件增长较快"
+              ></Tip>
+            </template>
+            <n-switch
+              v-model:value="config.recorder.rawLogRoom"
+              :disabled="config.recorder.disableProvideCommentsWhenRecording"
+            />
+          </n-form-item>
+          <n-form-item
+            :class="{
+              'form-item-disabled': config.recorder.disableProvideCommentsWhenRecording,
+            }"
+          >
+            <template #label>
+              <Tip
+                text="贡献榜原始报文"
+                tip="写入「视频名_rank_raw.jsonl」。约 2 秒一条（约 1800 条/小时）"
+              ></Tip>
+            </template>
+            <n-switch
+              v-model:value="config.recorder.rawLogRank"
+              :disabled="config.recorder.disableProvideCommentsWhenRecording"
+            />
+          </n-form-item>
+          <n-form-item
+            :class="{
+              'form-item-disabled': config.recorder.disableProvideCommentsWhenRecording,
+            }"
+          >
+            <template #label>
+              <Tip
+                text="礼物原始报文"
+                tip="写入「视频名_gift_raw.jsonl」。礼物是全场条数最多的消息，单行约 2 KB，单场可达数 MB"
+              ></Tip>
+            </template>
+            <n-switch
+              v-model:value="config.recorder.rawLogGift"
+              :disabled="config.recorder.disableProvideCommentsWhenRecording"
+            />
+          </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="xhs" tab="小红书" display-directive="show:lazy">
           <h3 style="margin-bottom: 10px">设置Cookie可自动监听，建议使用小号</h3>

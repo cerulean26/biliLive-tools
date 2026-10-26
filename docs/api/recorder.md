@@ -121,7 +121,7 @@
 | onlyAudio                           | boolean | 否   | 仅音频                                                                                                             |
 | useServerTimestamp                  | boolean | 否   | 使用服务器时间戳                                                                                                   |
 | handleTime                          | object  | 否   | 监听时间                                                                                                           |
-| debugLevel                          | string  | 否   | 调试级别                                                                                                           |
+| debugLevel                          | string  | 否   | 调试等级：`none` 关闭、`basic` 写 `.recorder.log`、`verbose` 另开底层日志（见[排障与调试](/features/debug)）       |
 
 ## 更新录制
 

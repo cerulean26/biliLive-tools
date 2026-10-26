@@ -54,6 +54,12 @@ export const recorderNoGlobalFollowFields: Array<
     | "onlyAudio"
     | "handleTime"
     | "weight"
+    // 四路原始报文转储是**纯全局**开关（`RecorderConfig.getValue` 直接读全局配置），
+    // 不进入「可按房间跟随全局」的列表 —— 否则 addModal 的 globalFieldsObj 会被迫补键。
+    | "rawLogPk"
+    | "rawLogRoom"
+    | "rawLogRank"
+    | "rawLogGift"
   >
 > = [
   "quality",
@@ -473,6 +479,14 @@ export interface GlobalRecorder {
   debugMode: boolean;
   /** 调试等级 */
   debugLevel: "none" | "basic" | "verbose";
+  /** 抖音原始报文转储：PK 消息（全局开关，不按房间；写 `<视频名>_pk_raw.jsonl`） */
+  rawLogPk?: boolean;
+  /** 抖音原始报文转储：在线人数消息（全局开关，写 `_room_raw.jsonl`） */
+  rawLogRoom?: boolean;
+  /** 抖音原始报文转储：贡献榜消息（全局开关，写 `_rank_raw.jsonl`） */
+  rawLogRank?: boolean;
+  /** 抖音原始报文转储：礼物消息（全局开关，写 `_gift_raw.jsonl`） */
+  rawLogGift?: boolean;
   /** 下播延迟检查 */
   recordRetryImmediately: boolean;
   /** 画质 */
@@ -626,6 +640,14 @@ export interface Recorder {
   handleTime: [string | null, string | null];
   /** 调试等级 */
   debugLevel: "none" | "basic" | "verbose";
+  /** 抖音原始报文转储：PK 消息（全局开关，不按房间；写 `<视频名>_pk_raw.jsonl`） */
+  rawLogPk?: boolean;
+  /** 抖音原始报文转储：在线人数消息（全局开关，写 `_room_raw.jsonl`） */
+  rawLogRoom?: boolean;
+  /** 抖音原始报文转储：贡献榜消息（全局开关，写 `_rank_raw.jsonl`） */
+  rawLogRank?: boolean;
+  /** 抖音原始报文转储：礼物消息（全局开关，写 `_gift_raw.jsonl`） */
+  rawLogGift?: boolean;
   /** 平台请求接口 */
   api:
     | HuyaRecorderConfig["api"]

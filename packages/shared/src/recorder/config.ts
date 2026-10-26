@@ -247,6 +247,12 @@ export default class RecorderConfig {
       qualityRetry: getValue("qualityRetry") ?? 0,
       videoFormat: getValue("videoFormat") ?? "auto",
       debugLevel: getValue("debugLevel") ?? "none",
+      // 四路原始报文转储是**全局**开关：这些键不在 `noGlobalFollowFields` 里，
+      // 因此 `getValue` 会走 else 分支直接读全局配置，房间级设置不会生效（设计如此）。
+      rawLogPk: getValue("rawLogPk") ?? false,
+      rawLogRoom: getValue("rawLogRoom") ?? false,
+      rawLogRank: getValue("rawLogRank") ?? false,
+      rawLogGift: getValue("rawLogGift") ?? false,
       recorderType: getValue("recorderType") ?? "ffmpeg",
       auth: auth,
       useM3U8Proxy: getValue("useM3U8Proxy") ?? false,

@@ -294,6 +294,38 @@ describe("RecorderConfig", () => {
       expect(recorderConfig.get("dy")?.saveRoomRank).toBe(true);
     });
 
+    it("四路原始报文转储：读全局配置，缺键回退 false", () => {
+      mockAppConfig.get.mockImplementation((key: string) => {
+        if (key === "recorder") {
+          return { rawLogPk: true };
+        }
+        if (key === "recorders") {
+          return [{ id: "dy", providerId: "DouYin", channelId: "1" }];
+        }
+        return null;
+      });
+
+      const config = recorderConfig.get("dy");
+      expect(config?.rawLogPk).toBe(true);
+      // 缺键必须是 false（写成 `?? true` 会让老配置凭空开始转储大文件）
+      expect(config?.rawLogRoom).toBe(false);
+    });
+
+    it("四路原始报文转储是全局开关：房间配置里的同名值不生效", () => {
+      mockAppConfig.get.mockImplementation((key: string) => {
+        if (key === "recorder") {
+          return {};
+        }
+        if (key === "recorders") {
+          return [{ id: "dy", providerId: "DouYin", channelId: "1", rawLogPk: true }];
+        }
+        return null;
+      });
+
+      // 这四个键不在 `noGlobalFollowFields` 里 ⇒ getValue 走全局分支，房间值被忽略（设计如此）
+      expect(recorderConfig.get("dy")?.rawLogPk).toBe(false);
+    });
+
     it("礼物图片/送礼者头像：全局配置缺键时回退为 true（老配置升级后仍带图）", () => {
       mockAppConfig.get.mockImplementation((key: string) => {
         if (key === "recorder") {

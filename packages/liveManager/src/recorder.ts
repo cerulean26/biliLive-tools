@@ -109,6 +109,11 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   proxy?: string;
   /** 调试等级 */
   debugLevel?: "none" | "basic" | "verbose";
+  /** 抖音原始报文转储（全局开关，与环境变量取或；见 DouYinRecorder 的实现） */
+  rawLogPk?: boolean;
+  rawLogRoom?: boolean;
+  rawLogRank?: boolean;
+  rawLogGift?: boolean;
 }
 
 export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreateOpts<E>, "id"> &

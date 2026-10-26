@@ -69,6 +69,7 @@ export default defineConfig({
             { text: "XML弹幕转换", link: "/features/danmaku-convert" },
             { text: "抖音PK分数", link: "/features/douyin-pk" },
             { text: "抖音礼物图片", link: "/features/douyin-gift-images" },
+            { text: "排障与调试", link: "/features/debug" },
             { text: "视频切片", link: "/features/video-clip" },
             { text: "文件同步", link: "/features/file-sync" },
             { text: "虚拟录制", link: "/features/virtual-record" },

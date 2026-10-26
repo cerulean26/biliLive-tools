@@ -221,6 +221,66 @@ export const PK_NICKNAME_FLUSH_WAIT_TIMEOUT = 3_000;
 const PK_NICKNAME_FLUSH_CONCURRENCY = 4;
 
 /**
+ * 四路原始报文转储的开关环境变量。**只有值严格等于 `"1"` 才算开启**
+ * （`0` / 空串 / 未设置都算关闭），与 `createJsonlRawLogger` 的 enabled 语义一致。
+ *
+ * 集中在这里的原因：开关名同时被「写入器默认值」与「全关时的汇总日志」使用，
+ * 两处各写一份字符串会悄悄漂移（改名只改一处 ⇒ 汇总日志说的与实际不符）。
+ */
+const RAW_LOG_ENV_KEYS = {
+  pk: "BILILIVE_TOOLS_PK_RAW_LOG",
+  room: "BILILIVE_TOOLS_ROOM_RAW_LOG",
+  rank: "BILILIVE_TOOLS_RANK_RAW_LOG",
+  gift: "BILILIVE_TOOLS_GIFT_RAW_LOG",
+} as const;
+
+export type RawLogKind = keyof typeof RAW_LOG_ENV_KEYS;
+
+/** 读取单路转储开关（`env` 参数只为便于测试，默认即真实 `process.env`） */
+export function isRawLogEnabled(kind: RawLogKind, env: NodeJS.ProcessEnv = process.env): boolean {
+  return env[RAW_LOG_ENV_KEYS[kind]] === "1";
+}
+
+/**
+ * 四路**全部关闭**时返回要打印的一行提示，否则返回 `null`。
+ *
+ * 为什么需要：`createJsonlRawLogger` 只在**开启**时打日志，四路全关时日志里没有任何痕迹，
+ * 「环境变量没传到进程」（打包版从图形界面启动时拿不到 shell 变量，这是最常见的情形）
+ * 与「传到了但值是 `0`/空」完全无法区分。
+ * 抽成纯函数是因为调用点在 `checkLiveStatusAndRecord` 里，直接断言不到。
+ */
+export function describeDisabledRawLogs(switches: Record<RawLogKind, boolean>): string | null {
+  if ((Object.keys(switches) as RawLogKind[]).some((kind) => switches[kind])) return null;
+  const names = Object.values(RAW_LOG_ENV_KEYS)
+    .map((key) => key.replace("BILILIVE_TOOLS_", "").replace("_RAW_LOG", ""))
+    .join(",");
+  return `[rawLog] 四路原始报文转储均未启用（设置页「调试」四项均关，BILILIVE_TOOLS_{${names}}_RAW_LOG 亦非 "1"）`;
+}
+
+/**
+ * 合成四路转储的最终开关：**设置页开关与环境变量取或**。
+ *
+ * - 设置页（`config.recorder.rawLog*`，全局、不按房间）是可发现、可达的主入口 ——
+ *   打包版从图形界面启动时拿不到 shell 环境变量，只靠 env 等于没有入口；
+ * - 环境变量只增不减：`"1"` 能强制打开（临时取证时不必进设置页），但**不能**关掉已打开的开关。
+ *   需求上不存在「export 一个变量就是为了关掉它」，取或也避免了 `"0"` / 未设 / 其它值的歧义。
+ *
+ * @param config 录制器上携带的四个开关值；老配置或非抖音平台可能全为 `undefined`
+ * @param env 便于测试注入，默认真实 `process.env`
+ */
+export function resolveRawLogSwitches(
+  config: Partial<Record<RawLogKind, boolean>>,
+  env: NodeJS.ProcessEnv = process.env,
+): Record<RawLogKind, boolean> {
+  return {
+    pk: config.pk === true || isRawLogEnabled("pk", env),
+    room: config.room === true || isRawLogEnabled("room", env),
+    rank: config.rank === true || isRawLogEnabled("rank", env),
+    gift: config.gift === true || isRawLogEnabled("gift", env),
+  };
+}
+
+/**
  * 通用「原始报文 jsonl 转储」写入器（内部工厂）。
  *
  * 四个转储入口（pk / room / rank / gift）**共用这一份实现**；各自的包装函数只负责固定
@@ -307,7 +367,7 @@ function createJsonlRawLogger(
  *   临时产物，不该默认产生。关闭时返回空操作（连文件都不创建）。
  */
 export function createPkRawLogger(
-  enabled: boolean = process.env.BILILIVE_TOOLS_PK_RAW_LOG === "1",
+  enabled: boolean = isRawLogEnabled("pk"),
 ): (videoPath: string | undefined, tag: string, payload: unknown) => Promise<void> {
   return createJsonlRawLogger("pk", "pkRawLog", enabled);
 }
@@ -327,7 +387,7 @@ export function createPkRawLogger(
  *   不该默认产生。关闭时返回空操作（连文件都不创建）。
  */
 export function createRoomRawLogger(
-  enabled: boolean = process.env.BILILIVE_TOOLS_ROOM_RAW_LOG === "1",
+  enabled: boolean = isRawLogEnabled("room"),
 ): (videoPath: string | undefined, tag: string, payload: unknown) => Promise<void> {
   return createJsonlRawLogger("room", "roomRawLog", enabled);
 }
@@ -354,7 +414,7 @@ export function createRoomRawLogger(
  *   不该默认产生。关闭时返回空操作（连文件都不创建）。
  */
 export function createRankRawLogger(
-  enabled: boolean = process.env.BILILIVE_TOOLS_RANK_RAW_LOG === "1",
+  enabled: boolean = isRawLogEnabled("rank"),
 ): (videoPath: string | undefined, tag: string, payload: unknown) => Promise<void> {
   return createJsonlRawLogger("rank", "rankRawLog", enabled);
 }
@@ -375,7 +435,7 @@ export function createRankRawLogger(
  *   关闭时返回空操作（连文件都不创建）。
  */
 export function createGiftRawLogger(
-  enabled: boolean = process.env.BILILIVE_TOOLS_GIFT_RAW_LOG === "1",
+  enabled: boolean = isRawLogEnabled("gift"),
 ): (videoPath: string | undefined, tag: string, payload: unknown) => Promise<void> {
   return createJsonlRawLogger("gift", "giftRawLog", enabled);
 }
@@ -1113,15 +1173,26 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   /** 场次去重：同一场 PK 只让首个事件生效（实现见 pkNicknameCache.ts） */
   const pkChannelTracker = createPkChannelTracker();
 
+  // 四路转储的开关只读一次，同时用于「写入器」与「全关汇总日志」：分两处各读一次，
+  // 会出现「日志说没开、实际却在写文件」这种自相矛盾的排查现场。
+  const rawLogSwitches = resolveRawLogSwitches({
+    pk: this.rawLogPk,
+    room: this.rawLogRoom,
+    rank: this.rawLogRank,
+    gift: this.rawLogGift,
+  });
+  const disabledRawLogHint = describeDisabledRawLogs(rawLogSwitches);
+  if (disabledRawLogHint) console.log(disabledRawLogHint);
+
   // PK 原始日志写入器：**每个录制会话一个实例**，状态随会话创建、不跨会话复用。
   // 早期实现是模块级单例，导致第 2 次录制/另一房间写进第 1 次录制的文件（跨会话串台）。
-  const appendPkRawLog = createPkRawLogger();
+  const appendPkRawLog = createPkRawLogger(rawLogSwitches.pk);
   // 人数消息转储：默认关闭，设 BILILIVE_TOOLS_ROOM_RAW_LOG=1 才写 _room_raw.jsonl
-  const appendRoomRawLog = createRoomRawLogger();
+  const appendRoomRawLog = createRoomRawLogger(rawLogSwitches.room);
   // 贡献榜消息转储：默认关闭，设 BILILIVE_TOOLS_RANK_RAW_LOG=1 才写 _rank_raw.jsonl
-  const appendRankRawLog = createRankRawLogger();
+  const appendRankRawLog = createRankRawLogger(rawLogSwitches.rank);
   // 礼物原始消息转储（临时调试，与 PK 转储独立）：确认 gift.image 下发了哪些字段。
-  const appendGiftRawLog = createGiftRawLogger();
+  const appendGiftRawLog = createGiftRawLogger(rawLogSwitches.gift);
 
   client.on("linkMicBattle", (msg) => {
     // user_infos 是 map<int64,...>，protobufjs 把 int64 键转成不可读哈希串；

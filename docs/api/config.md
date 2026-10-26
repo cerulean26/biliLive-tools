@@ -318,8 +318,12 @@
     saveSCDanma: true, // 是否保存 SuperChat 弹幕
     saveCover: false, // 是否保存直播封面
     uid: undefined, // 默认用户 UID
-    debugMode: false, // 是否启用调试模式
-    debugLevel: "none", // 调试级别
+    debugMode: false, // 已废弃：不再生效，仅保留兼容老配置
+    debugLevel: "none", // 调试等级: none|basic|verbose（basic 落盘 .recorder.log；verbose 另开底层工具 debug 日志）
+    rawLogPk: false, // 抖音原始报文转储: PK（全局开关，不按房间）
+    rawLogRoom: false, // 抖音原始报文转储: 在线人数
+    rawLogRank: false, // 抖音原始报文转储: 贡献榜
+    rawLogGift: false, // 抖音原始报文转储: 礼物
     qualityRetry: 0, // 画质降级重试次数
     videoFormat: "auto", // 视频格式: auto|flv|ts|mp4
     recorderType: "bililive", // 录制器类型
