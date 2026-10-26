@@ -333,7 +333,16 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
    */
   const rankUsers = new Map<string, RankUserEntry>();
 
-  const writeToFile = async (force = false): Promise<void> => {
+  /**
+   * 串行化写入链。`setInterval` 触发的批次写入**不被 await**：若它还在 `await appendFile`
+   * 时 `flush` 就写 `</i>`，两次 append 会并发在途、先后顺序无保证 —— `</i>` 若先落盘，
+   * 批次内容就跑到根节点之后，整份 XML 损坏（预览全废，且 hasCompleted 已置位无法重试）。
+   * 把所有写入排进同一条链、`flush` 复用该链后，`</i>` 必然排在所有批次之后。
+   * 该隐患上游同款，此处修正。顺带消除首写竞态（`hasPersistedHeader` 在链上串行推进）。
+   */
+  let writeChain: Promise<void> = Promise.resolve();
+
+  const performWrite = async (force = false): Promise<void> => {
     if (!force && data.pendingMessages.length === 0) {
       return Promise.resolve();
     }
@@ -368,6 +377,14 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
       console.error("写入XML文件失败:", error);
       data.pendingMessages = [...messagesToWrite, ...data.pendingMessages];
     }
+  };
+
+  /** 把一次写入追加到串行链尾；返回的 promise 在该次写入完成后 resolve */
+  const writeToFile = (force = false): Promise<void> => {
+    const run = writeChain.then(() => performWrite(force));
+    // performWrite 内部已 catch（不会 reject）；仍兜底，避免异常打断后续写入
+    writeChain = run.catch(() => {});
+    return run;
   };
 
   // 每10秒写入一次数据
