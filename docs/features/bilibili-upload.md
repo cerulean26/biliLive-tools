@@ -53,6 +53,7 @@ B站上传功能可以帮助你：
 
 - <code v-pre>{{title}}</code> - 直播标题
 - <code v-pre>{{user}}</code> - 主播名
+- <code v-pre>{{remarks}}</code> - 备注（**仅 Webhook 流程可用**，见下）
 - <code v-pre>{{roomId}}</code> - 房间号
 - <code v-pre>{{filename}}</code> - 视频文件名
 - <code v-pre>{{now}}</code> - 录制时间（示例：2024.01.24）
@@ -62,8 +63,16 @@ B站上传功能可以帮助你：
 
 同时支持 [ejs模板引擎](https://github.com/mde/ejs) 语法。
 
-:::info
-3.7.0 起，部分占位符可在手动上传时匹配替换，但是尽量，不保证成功
+:::info 手动上传时哪些变量拿得到
+3.7.0 起，部分占位符可在手动上传时匹配替换，但是尽量，不保证成功。
+
+其中 <code v-pre>{{remarks}}</code> **只在 Webhook 流程可用**。备注取自添加直播间时填写的「备注」，
+随 Webhook 事件传给上传任务。手动上传（上传页选文件、由文件创建任务）没有这个来源，会退化成两种情况：
+
+- 视频信息能被解析出来 → 回退为「主播名」，输出与 <code v-pre>{{user}}</code> 相同；
+- 视频信息解析不出来 → 整条标题模板都不渲染，<code v-pre>{{remarks}}</code> 会**原样留在标题里**。
+
+这也是上面「不保证成功」的具体含义。
 :::
 
 ### 视频简介

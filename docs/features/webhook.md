@@ -195,6 +195,7 @@ Webhook 标题支持 [ejs模板引擎](https://github.com/mde/ejs)，可以实�
 
 - <code v-pre>{{title}}</code> - 直播标题
 - <code v-pre>{{user}}</code> - 主播名
+- <code v-pre>{{remarks}}</code> - 备注（添加直播间时填写；未填写时回退为主播名）
 - <code v-pre>{{roomId}}</code> - 房间号
 - <code v-pre>{{filename}}</code> - 视频文件名
 - <code v-pre>{{now}}</code> - 视频录制时间（示例：2024.01.24）
@@ -215,6 +216,7 @@ Webhook 标题支持 [ejs模板引擎](https://github.com/mde/ejs)，可以实�
 {
   title: string; // 直播间标题
   user: string; // 主播名称
+  remarks: string; // 备注，未填写时为主播名称
   time: Date; // 直播开始时间
   roomId: number | string; // 房间号
 }
