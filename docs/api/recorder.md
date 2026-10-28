@@ -44,7 +44,7 @@
         "source": "hs", // 使用的路线
         "recorderType": "ffmpeg", // 使用的录制器，ffmpeg：ffmpeg、 mesio：mesio、bililive：录播姬
         "url": "https://huos1a.douyucdn2.cn/live/2140934rMNEDcr4D.flv?wsAuth=874e3bf44e9d4456de93434ac4ef8032&token=web-h5-0-2140934-c5beacba295c6775a5ed35207379674e5b17beacf5dc2fc2&logo=0&expire=0&did=0cd6b908331044a28188f47e64126ac8&pt=2&st=0&sid=431568548&mcid2=0&origin=dy&fcdn=hs&fo=0&mix=0&isp=", // 当前录制的链接
-        "savePath": "C:\\Users\\renmu\\Downloads\\录制\\斗鱼\\老皮历险记\\老皮12.27历险记-单机王中王 2026-05-21 22-01-PART%03d.mp4", //保存路径
+        "savePath": "C:\\Users\\renmu\\Downloads\\录制\\斗鱼\\老皮历险记\\老皮12.27历险记-单机王中王 2026-05-21 22-01-PART%03d.mp4", //保存路径（分段录制时是命名模板，%03d/%i 会被底层工具替换、每段录完还会重命名，不是磁盘上的真实文件名）
         "progress": { "time": "00:09:55" } // 录制时长，不一定存在
       },
       // 仅当监听中状态存在

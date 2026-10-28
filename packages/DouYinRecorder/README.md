@@ -116,7 +116,6 @@ const { id } = await provider.resolveChannelInfoFromURL(url);
 
 | shell      | 命令                                   |
 | ---------- | -------------------------------------- |
-| Nushell    | `$env.BILILIVE_TOOLS_PK_RAW_LOG = "1"` |
 | PowerShell | `$env:BILILIVE_TOOLS_PK_RAW_LOG = "1"` |
 | cmd        | `set BILILIVE_TOOLS_PK_RAW_LOG=1`      |
 | bash       | `export BILILIVE_TOOLS_PK_RAW_LOG=1`   |
