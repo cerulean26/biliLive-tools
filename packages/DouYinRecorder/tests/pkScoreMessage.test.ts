@@ -120,6 +120,22 @@ describe("buildPkScoreMessage:: 正常路径", () => {
     );
     expect(out!.timestamp).toBe(1_700_000_000_000);
   });
+
+  it("createTime 缺失时回落到 now（不是 0）", () => {
+    const out = buildPkScoreMessage({ userScores: [{ userId: "A" }] }, true, 1_700_000_123_000);
+
+    expect(out!.timestamp).toBe(1_700_000_123_000);
+  });
+
+  it('createTime 为字符串 "0" 时同样回落到 now', () => {
+    const out = buildPkScoreMessage(
+      { userScores: [{ userId: "A" }], common: { createTime: "0" } },
+      true,
+      1_700_000_124_000,
+    );
+
+    expect(out!.timestamp).toBe(1_700_000_124_000);
+  });
 });
 
 /**

@@ -154,6 +154,26 @@ describe("buildRoomRankMessage:: 时间戳口径", () => {
     expect(out?.timestamp).toBeGreaterThanOrEqual(before);
     expect(out?.timestamp).toBeLessThanOrEqual(Date.now());
   });
+
+  it("createTime 缺失时回落到 now（不是 0）", () => {
+    const now = 1_700_000_011_000;
+    const out = buildRoomRankMessage(
+      { ranks: [{ user: { id: "1" } }] },
+      { useServerTimestamp: true, now },
+    );
+
+    expect(out?.timestamp).toBe(now);
+  });
+
+  it('createTime 为字符串 "0" 时同样回落到 now', () => {
+    const now = 1_700_000_012_000;
+    const out = buildRoomRankMessage(
+      { ranks: [{ user: { id: "1" } }], common: { createTime: "0" } },
+      { useServerTimestamp: true, now },
+    );
+
+    expect(out?.timestamp).toBe(now);
+  });
 });
 
 /**

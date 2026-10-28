@@ -21,6 +21,7 @@ import type {
 
 import { getInfo, getStream } from "./stream.js";
 import { singleton } from "./utils.js";
+import { resolveTimestamp } from "./messageTimestamp.js";
 import {
   resolveShortURL,
   parseUser,
@@ -736,7 +737,7 @@ export function buildRoomStatsMessage(
     displayValue?: string | number;
     common?: { createTime?: string | number };
   },
-  options: { useServerTimestamp: boolean; save?: boolean },
+  options: { useServerTimestamp: boolean; save?: boolean; now?: number },
 ): Message | null {
   const { useServerTimestamp, save = true } = options;
   if (!save) return null;
@@ -744,15 +745,15 @@ export function buildRoomStatsMessage(
   const online = String(msg.displayValue ?? "");
   if (!online) return null;
 
-  const createTime = Number(msg.common?.createTime ?? 0);
   return {
     type: "room_stats",
-    // createTime 有秒/毫秒两种口径（实测两种都出现过），按数值大小判别
-    timestamp: useServerTimestamp
-      ? createTime > 9999999999
-        ? createTime
-        : createTime * 1000
-      : Date.now(),
+    // createTime 有秒/毫秒两种口径（实测两种都出现过），单位交给 resolveTimestamp 统一判别；
+    // 缺失 / "0" 时回落到 now，不再产出 timestamp=0（会静默排到时间线最前）
+    timestamp: resolveTimestamp(msg.common?.createTime, {
+      useServerTimestamp,
+      unit: "ms",
+      now: options.now,
+    }),
     online,
   };
 }
@@ -783,7 +784,7 @@ export function buildRoomRankMessage(
     }[];
     common?: { createTime?: string | number };
   },
-  options: { useServerTimestamp: boolean; save?: boolean },
+  options: { useServerTimestamp: boolean; save?: boolean; now?: number },
 ): Message | null {
   const { useServerTimestamp, save = true } = options;
   if (!save) return null;
@@ -805,15 +806,15 @@ export function buildRoomRankMessage(
   // 空榜不生成消息：写了会让 XSL 多出一个空表，且与「本场没有榜」无法区分。
   if (users.length === 0) return null;
 
-  const createTime = Number(msg.common?.createTime ?? 0);
   return {
     type: "room_rank",
-    // 与 buildRoomStatsMessage 同口径：createTime 有秒/毫秒两种（实测都出现过），按数值大小判别
-    timestamp: useServerTimestamp
-      ? createTime > 9999999999
-        ? createTime
-        : createTime * 1000
-      : Date.now(),
+    // createTime 实测有秒/毫秒两种口径，单位交给 resolveTimestamp 统一判别；
+    // 缺失 / "0" 时回落到 now，不再产出 timestamp=0（会静默排到时间线最前）
+    timestamp: resolveTimestamp(msg.common?.createTime, {
+      useServerTimestamp,
+      unit: "ms",
+      now: options.now,
+    }),
     users,
   };
 }
@@ -858,9 +859,13 @@ export function buildPkScoreMessage(
   const userScores = msg.userScores ?? [];
   if (userScores.length === 0) return null;
 
-  const rawCreateTime = Number(msg.common?.createTime ?? 0);
-  const serverTimestamp = rawCreateTime > 9999999999 ? rawCreateTime : rawCreateTime * 1000;
-  const timestamp = useServerTimestamp ? serverTimestamp : now;
+  // createTime 实测有秒/毫秒两种口径，单位交给 resolveTimestamp 统一判别；
+  // 缺失 / "0" 时回落到 now，不再产出 timestamp=0（会静默排到时间线最前）
+  const timestamp = resolveTimestamp(msg.common?.createTime, {
+    useServerTimestamp,
+    unit: "ms",
+    now,
+  });
 
   // 按名次确定性排序，消除抖音推送顺序逐帧轮转导致的表格行序乱跳
   const players = sortPkPlayers(

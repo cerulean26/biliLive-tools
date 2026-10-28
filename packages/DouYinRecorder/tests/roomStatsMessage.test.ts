@@ -91,9 +91,31 @@ describe("buildRoomStatsMessage:: 时间戳口径", () => {
     expect(out?.timestamp).toBe(1_700_000_000_000);
   });
 
-  it("createTime 缺失时不产出 NaN 时间戳", () => {
-    const out = buildRoomStatsMessage({ displayValue: "100" }, { useServerTimestamp: true });
+  it("createTime 缺失时回落到 now（不是 0、不是 NaN）", () => {
+    const now = 1_700_000_009_000;
+    const spy = vi.spyOn(Date, "now").mockReturnValue(now);
+    try {
+      const out = buildRoomStatsMessage({ displayValue: "100" }, { useServerTimestamp: true });
 
-    expect(Number.isNaN(out?.timestamp as number)).toBe(false);
+      expect(out?.timestamp).toBe(now);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('createTime 为字符串 "0" 时同样回落到 now', () => {
+    // toJSON 后 uint64 是字符串，"0" 是 truthy —— 真值判断挡不住，必须按数值判断
+    const now = 1_700_000_010_000;
+    const spy = vi.spyOn(Date, "now").mockReturnValue(now);
+    try {
+      const out = buildRoomStatsMessage(
+        { displayValue: "100", common: { createTime: "0" } },
+        { useServerTimestamp: true },
+      );
+
+      expect(out?.timestamp).toBe(now);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
