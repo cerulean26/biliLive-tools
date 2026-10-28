@@ -380,4 +380,31 @@ describe("贡献榜：XSL 模板接线", () => {
     expect(xml).toContain(`<z:attribute name="class">cur</z:attribute>`);
     expect(xml).toContain("tr.cur td{background:#fff8e1}");
   });
+
+  it("每行固定 4 个单元格：表头 4 列、行内 3 个名次格无条件输出（不足 3 人也不错位）", async () => {
+    const { controller, savePath, start } = await makeController();
+
+    controller.addMessage(rank([A, B, C], start + 1000));
+    await controller.flush();
+
+    const xml = await fs.readFile(savePath, "utf8");
+    const block = xml.match(/<h2 id="rank">[\s\S]*?<\/table>/)?.[0] ?? "";
+    expect(block).not.toBe("");
+
+    // 表头：变化时间 + 第 1/2/3 名
+    expect(block.match(/<th>/g) ?? []).toHaveLength(4);
+
+    // 行：时间格 + 3 个名次格。**单元格数不能由数据决定** —— 早期按
+    // `<z:for-each select="u">` 渲染，快照不足 3 人（缺 uid 的成员被丢弃）时列数少于表头、整表错位。
+    const row = block.match(/<z:for-each select="\/i\/rank">[\s\S]*?<\/z:for-each>/)?.[0] ?? "";
+    expect(row).not.toBe("");
+    expect(row.match(/<td>/g) ?? []).toHaveLength(4);
+    expect(row).not.toContain(`<z:for-each select="u">`);
+
+    // 三个名次格各由一个位置变量驱动，缺该名次时靠 z:if 留空单元格
+    for (const n of [1, 2, 3]) {
+      expect(row).toContain(`<z:variable name="u${n}" select="u[${n}]"/>`);
+      expect(row).toContain(`<z:if test="$u${n}">`);
+    }
+  });
 });
