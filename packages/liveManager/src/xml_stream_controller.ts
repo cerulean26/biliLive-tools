@@ -456,6 +456,21 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
       console.error("完成XML文件写入失败:", error);
     }
 
+    // performWrite 失败时会把消息退回 pendingMessages（内部 catch，不抛出）。若就此走到函数
+    // 末尾的 `pendingMessages = []`，这批消息既不落盘、也不再重试，而 XML 闭合完整、没有任何
+    // 迹象 —— 事后只能发现「少了几条弹幕」。这里重试一次，仍失败则明确记录条数。
+    // 必须在写 pk_users 与 `</i>` 之前：这些消息属于根节点内部。
+    if (data.pendingMessages.length > 0) {
+      try {
+        await writeToFile(true);
+      } catch (error) {
+        console.error("重试写入XML文件失败:", error);
+      }
+      if (data.pendingMessages.length > 0) {
+        console.error(`XML 写入失败：${data.pendingMessages.length} 条消息未落盘（重试后仍失败）`);
+      }
+    }
+
     // flush 前补齐昵称：让录制器等待其「在途的昵称查询」并回读缓存结果。
     //
     // ⚠️ 必须**直接写 `pkUserNicknames`**，不能走 `registerPkNickname` —— 后者开头是
@@ -568,13 +583,15 @@ function generateXmlContent(
         "@@mode": String(ele.mode ?? 1),
         "@@fontsize": String(25),
         "@@color": String(parseInt((ele.color || "#ffffff").replace("#", ""), 16)),
-        "@@midHash": String(ele?.sender?.uid),
+        // sender 缺失时 `String(undefined)` 会写出字面量 "undefined"（脏值，且 uid 还参与
+        // XSL 的 key() 拼键）；统一用 `?? ""` 归一为空串。属性本身保留，避免结构随数据抖动。
+        "@@midHash": String(ele?.sender?.uid ?? ""),
         "#text": String(ele?.text || ""),
         "@@ctime": String(ele.timestamp),
         "@@pool": String(0),
         "@@weight": String(0),
-        "@@user": String(ele.sender?.name),
-        "@@uid": String(ele?.sender?.uid),
+        "@@user": String(ele.sender?.name ?? ""),
+        "@@uid": String(ele?.sender?.uid ?? ""),
         "@@timestamp": String(ele.timestamp),
         "@@level": String(ele?.sender?.extra?.level ?? "0"),
         "@@club_level": String(ele?.sender?.extra?.clubLevel ?? "0"),
@@ -613,7 +630,8 @@ function generateXmlContent(
       const giftName = String(ele.name);
       const uid = String(ele?.sender?.uid ?? "");
       // 与 `@@user` 必须同源：XSL 用 `@user` 参与拼键，两边取值不一致就查不到头像。
-      const userName = String(ele.sender?.name);
+      // 同样用 `?? ""` 归一：缺昵称时键退化为 `uid|`，XSL 侧 concat 不存在的属性也是空串，两边一致。
+      const userName = String(ele.sender?.name ?? "");
       const iconKey = giftIconKey(giftId, giftName);
       // 「首见」要同时判两张表：`giftIcons` 是跨批已提交的，`newGiftIcons` 是本批的。
       // 只判前者时，同一批（10 秒窗口）内同一键第二次出现会覆盖首见图，
@@ -664,8 +682,8 @@ function generateXmlContent(
         "@@ts": progress,
         "@@price": String(ele.price * 1000),
         "#text": String(ele.text),
-        "@@user": String(ele.sender?.name),
-        "@@uid": String(ele?.sender?.uid),
+        "@@user": String(ele.sender?.name ?? ""),
+        "@@uid": String(ele?.sender?.uid ?? ""),
         "@@timestamp": String(ele.timestamp),
       };
     });
@@ -680,8 +698,8 @@ function generateXmlContent(
         "@@giftname": String(ele.name),
         "@@giftcount": String(ele.count),
         "@@level": String(ele.level),
-        "@@user": String(ele.sender?.name),
-        "@@uid": String(ele?.sender?.uid),
+        "@@user": String(ele.sender?.name ?? ""),
+        "@@uid": String(ele?.sender?.uid ?? ""),
         "@@timestamp": String(ele.timestamp),
       };
     });
@@ -703,7 +721,11 @@ function generateXmlContent(
         player: ele.players.map((p) => ({
           "@@uid": String(p.uid),
           "@@score": String(p.score ?? "0"),
-          "@@rank": String(p.rank ?? ""),
+          // rank 缺值时不写属性（而非写成 rank=""）：与相邻的 team_* 一致，
+          // 也符合「没收到值不产生空标签」。录制器侧把缺失名次归一为空串
+          // （buildPkScoreMessage 的既定契约），空串在这里被 truthy 判断挡掉。
+          // XSL 的 <z:value-of select="@rank"/> 对不存在的属性输出空，单元格留空。
+          ...(p.rank ? { "@@rank": String(p.rank) } : {}),
           // 仅在团队 PK 时输出 team_* 属性：非团队 PK 的 userScores 不含 team 字段，
           // 原写法会为每个 <player> 写出 team_score="" team_rank=""（约占文件 10-13%）。
           // 缺省时 XSL 会整列隐藏（模板里对应该列头的 z:if 判断），不会留下空列。
